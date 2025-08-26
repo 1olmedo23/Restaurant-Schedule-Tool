@@ -1,0 +1,11 @@
+<th:block th:with="active='employee-schedule'"
+          th:replace="~{layout :: base(~{::section})}">
+    <section>
+        <h1 class="h4 mb-3">My Schedule (Next 2 Weeks)</h1>
+        <div class="mb-2 text-muted">Starting week of <span th:text="${startDate}">YYYY-MM-DD</span></div>
+        <h2 class="h6 mt-3">Week 1</h2>
+        <div th:replace="~{fragments/schedule-table :: scheduleTable(${week1})}"></div>
+        <h2 class="h6 mt-4">Week 2</h2>
+        <div th:replace="~{fragments/schedule-table :: scheduleTable(${week2})}"></div>
+    </section>
+</th:block>

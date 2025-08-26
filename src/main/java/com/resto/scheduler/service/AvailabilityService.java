@@ -1,0 +1,1 @@
+package com.resto.scheduler.service; public interface AvailabilityService {}

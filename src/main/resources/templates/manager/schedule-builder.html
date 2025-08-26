@@ -1,0 +1,24 @@
+<th:block th:with="active='manager-schedule'"
+          th:replace="~{layout :: base(~{::section})}">
+    <section>
+        <h1 class="h4 mb-3">Schedule Builder (2 Weeks)</h1>
+        <p class="text-muted">Click a day to assign employees to roles.</p>
+
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-3">
+            <div class="col" th:each="d : ${days}">
+                <a class="card h-100 text-decoration-none hover-card"
+                   th:href="@{'/manager/schedule/' + ${#temporals.format(d, 'yyyy-MM-dd')}}">
+                    <div class="card-body">
+                        <h5 class="card-title mb-1" th:text="${#temporals.format(d,'EEEE')}">Day</h5>
+                        <div class="small text-muted" th:text="${#temporals.format(d,'MM/dd')}">00/00</div>
+                        <div class="mt-2 badge bg-secondary"
+                             th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">
+                            Closed
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+</th:block>
+

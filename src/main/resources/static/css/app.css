@@ -1,0 +1,13 @@
+.bg-closed {
+    background-color: #f8d7da !important
+}
+
+.hover-card:hover {
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+    transform: translateY(-1px)
+}
+
+.navbar .nav-link.active {
+    font-weight: 600;
+    border-bottom:2px solid #0d6efd
+}

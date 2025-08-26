@@ -1,0 +1,208 @@
+<!-- schedule table fragment -->
+<th:block th:fragment="scheduleTable(weekDays)">
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+            <thead class="table-secondary">
+            <tr>
+                <th>Role \ Day</th>
+                <th th:each="d : ${weekDays}"
+                    th:text="${#temporals.dayOfWeekName(d)} + ' ' + ${#temporals.format(d, 'MM/dd')}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''">
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <!-- Lunch section header -->
+            <tr class="table-light"><th class="text-start" colspan="8">Lunch</th></tr>
+
+            <!-- Lunch: Server -->
+            <tr>
+                <th class="text-start">Server</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'LUNCH_LUNCH_SERVER'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Lunch: Assistant -->
+            <tr>
+                <th class="text-start">Assistant</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'LUNCH_LUNCH_ASSISTANT'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Lunch: Manager -->
+            <tr>
+                <th class="text-start">Manager</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'LUNCH_LUNCH_MANAGER'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner section header -->
+            <tr class="table-light"><th class="text-start" colspan="8">Dinner</th></tr>
+
+            <!-- Dinner: Server 1 -->
+            <tr>
+                <th class="text-start">Server 1</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_SERVER_1'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Server 2 -->
+            <tr>
+                <th class="text-start">Server 2</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_SERVER_2'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Server 3 -->
+            <tr>
+                <th class="text-start">Server 3</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_SERVER_3'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Sushi -->
+            <tr>
+                <th class="text-start">Sushi</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_SUSHI'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Expo -->
+            <tr>
+                <th class="text-start">Expo</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_EXPO'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Busser 1 -->
+            <tr>
+                <th class="text-start">Busser 1</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_BUSSER_1'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Busser 2 -->
+            <tr>
+                <th class="text-start">Busser 2</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_BUSSER_2'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Host 1 -->
+            <tr>
+                <th class="text-start">Host 1</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_HOST_1'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: Host 2 -->
+            <tr>
+                <th class="text-start">Host 2</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_HOST_2'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            <!-- Dinner: FLOAT -->
+            <tr>
+                <th class="text-start">FLOAT</th>
+                <td th:each="d : ${weekDays}"
+                    th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? 'bg-closed' : ''"
+                    th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
+                             rk=${'DINNER_FLOAT'},
+                             asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
+                    <span th:if="${asg != null}"
+                          th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}">—</span>
+                    <span th:unless="${asg != null}">—</span>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</th:block>
+

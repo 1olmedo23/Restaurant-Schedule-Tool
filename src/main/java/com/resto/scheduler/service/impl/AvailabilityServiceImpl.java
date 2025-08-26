@@ -1,0 +1,1 @@
+package com.resto.scheduler.service.impl; import org.springframework.stereotype.Service; import com.resto.scheduler.service.AvailabilityService; @Service public class AvailabilityServiceImpl implements AvailabilityService {}
