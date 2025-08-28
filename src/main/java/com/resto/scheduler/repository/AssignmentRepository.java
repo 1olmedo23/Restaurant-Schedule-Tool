@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
+
     Optional<Assignment> findByShift(Shift shift);
 
     List<Assignment> findByShift_Date(LocalDate date);
@@ -24,6 +25,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     List<Assignment> findByEmployeeAndShift_DateBetween(AppUser employee, LocalDate start, LocalDate end);
 
-    // NEW: fetch ALL assignments across a date range (for the fixed grid)
+    // Used by Publish preview & Employee schedule (two-week grids)
     List<Assignment> findByShift_DateBetween(LocalDate start, LocalDate end);
 }

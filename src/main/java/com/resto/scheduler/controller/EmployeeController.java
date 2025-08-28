@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.resto.scheduler.service.ScheduleViewService;
 
 @Controller
 @RequestMapping("/employee")
@@ -25,13 +26,16 @@ public class EmployeeController {
   private final AppUserRepository userRepo;
   private final AvailabilityRepository availabilityRepo;
   private final AssignmentRepository assignmentRepo;
+  private final ScheduleViewService scheduleViewService;
 
   public EmployeeController(AppUserRepository userRepo,
                             AvailabilityRepository availabilityRepo,
-                            AssignmentRepository assignmentRepo) {
+                            AssignmentRepository assignmentRepo,
+                            ScheduleViewService scheduleViewService) {
     this.userRepo = userRepo;
     this.availabilityRepo = availabilityRepo;
     this.assignmentRepo = assignmentRepo;
+    this.scheduleViewService = scheduleViewService;
   }
 
   // === Availability (Tue–Sat) ===
@@ -79,48 +83,36 @@ public class EmployeeController {
 
   // === My Schedule (two weeks: current Mon–Sun + next Mon–Sun) ===
   @GetMapping("/schedule")
-  public String mySchedule(Authentication auth, Model model) {
+  public String mySchedule(org.springframework.security.core.Authentication auth, org.springframework.ui.Model model) {
     model.addAttribute("active", "employee-schedule");
 
-    // logged-in user (employees and managers both land here)
-    AppUser me = userRepo.findByUsername(auth.getName())
-            .orElseThrow(() -> new IllegalStateException("User not found: " + auth.getName()));
+    // Use latest POSTED if present, else current two-week window (will render dashes)
+    java.util.Optional<java.time.LocalDate> postedStartOpt = scheduleViewService.latestPostedStart();
+    java.time.LocalDate periodStart = postedStartOpt.orElse(scheduleViewService.mondayOf(java.time.LocalDate.now()));
+    java.time.LocalDate week2Start   = periodStart.plusWeeks(1);
+    java.time.LocalDate endInclusive = week2Start.plusDays(6);
 
-    // Two full weeks: current Mon–Sun + next Mon–Sun
-    LocalDate today = LocalDate.now();
-    LocalDate week1Start = today.with(DayOfWeek.MONDAY);
-    LocalDate week2Start = week1Start.plusWeeks(1);
-    LocalDate endInclusive = week2Start.plusDays(6);
-
-    // Load ALL assignments for the grid (not just "mine")
-    var allAssignments = assignmentRepo.findByShift_DateBetween(week1Start, endInclusive);
-
-    // Build nested map: date -> roleKey -> assignment
-    // roleKey = PERIOD + "_" + POSITION enum (e.g. "DINNER_SERVER_1", "LUNCH_LUNCH_SERVER")
-    Map<String, Map<String, Assignment>> assignmentsGrid = new HashMap<>();
-    for (Assignment a : allAssignments) {
-      var s = a.getShift();
-      String dateKey = s.getDate().toString(); // yyyy-MM-dd
-      String roleKey = s.getPeriod().name() + "_" + s.getPosition().name();
-
-      assignmentsGrid
-              .computeIfAbsent(dateKey, k -> new HashMap<>())
-              .put(roleKey, a);
-    }
-
-    // Build day lists for two weeks
-    List<LocalDate> week1 = new ArrayList<>();
-    List<LocalDate> week2 = new ArrayList<>();
-    for (int i = 0; i < 7; i++) week1.add(week1Start.plusDays(i));
+    java.util.List<java.time.LocalDate> week1 = new java.util.ArrayList<>(7);
+    java.util.List<java.time.LocalDate> week2 = new java.util.ArrayList<>(7);
+    for (int i = 0; i < 7; i++) week1.add(periodStart.plusDays(i));
     for (int i = 0; i < 7; i++) week2.add(week2Start.plusDays(i));
 
-    model.addAttribute("startDate", week1Start);
+    java.util.Map<String, java.util.Map<String, com.resto.scheduler.model.Assignment>> assignmentsGrid = new java.util.HashMap<>();
+    if (postedStartOpt.isPresent()) {
+      var allAssignments = assignmentRepo.findByShift_DateBetween(periodStart, endInclusive);
+      for (com.resto.scheduler.model.Assignment a : allAssignments) {
+        var s = a.getShift();
+        if (s == null) continue;
+        String dateKey = s.getDate().toString();
+        String roleKey = s.getPeriod().name() + "_" + s.getPosition().name();
+        assignmentsGrid.computeIfAbsent(dateKey, k -> new java.util.HashMap<>()).put(roleKey, a);
+      }
+    }
+
+    model.addAttribute("startDate", periodStart);
     model.addAttribute("week1", week1);
     model.addAttribute("week2", week2);
-
-    // Provide the grid map used by the fragment
     model.addAttribute("assignmentsGrid", assignmentsGrid);
-
     return "employee/schedule";
   }
 }

@@ -1,13 +1,19 @@
 package com.resto.scheduler.controller;
 
-import com.resto.scheduler.model.*;
+import com.resto.scheduler.model.AppUser;
+import com.resto.scheduler.model.Assignment;
+import com.resto.scheduler.model.Shift;
 import com.resto.scheduler.model.enums.Position;
 import com.resto.scheduler.model.enums.ShiftPeriod;
-import com.resto.scheduler.repository.*;
-
+import com.resto.scheduler.repository.AppUserRepository;
+import com.resto.scheduler.repository.AssignmentRepository;
+import com.resto.scheduler.repository.AvailabilityRepository;
+import com.resto.scheduler.repository.SchedulePeriodRepository;
+import com.resto.scheduler.repository.ShiftRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,15 +31,24 @@ public class ManagerController {
   private final ShiftRepository shiftRepo;
   private final AssignmentRepository assignmentRepo;
   private final AvailabilityRepository availabilityRepo;
+  private final SchedulePeriodRepository schedulePeriodRepo;
 
   public ManagerController(AppUserRepository userRepo,
                            ShiftRepository shiftRepo,
                            AssignmentRepository assignmentRepo,
-                           AvailabilityRepository availabilityRepo) {
+                           AvailabilityRepository availabilityRepo,
+                           SchedulePeriodRepository schedulePeriodRepo) {
     this.userRepo = userRepo;
     this.shiftRepo = shiftRepo;
     this.assignmentRepo = assignmentRepo;
     this.availabilityRepo = availabilityRepo;
+    this.schedulePeriodRepo = schedulePeriodRepo;
+  }
+
+  private boolean isLocked(LocalDate date) {
+    return schedulePeriodRepo.findTopByStatusOrderByStartDateDesc("POSTED")
+            .map(sp -> !date.isBefore(sp.getStartDate()) && !date.isAfter(sp.getEndDate()))
+            .orElse(false);
   }
 
   @GetMapping("/schedule-builder")
@@ -73,6 +88,7 @@ public class ManagerController {
     // Staff lists
     List<AppUser> employees = userRepo.findByRoles_Name("EMPLOYEE");
     List<AppUser> managers  = userRepo.findByRoles_Name("MANAGER");
+
     List<AppUser> allStaff  = new ArrayList<>();
     allStaff.addAll(employees);
     allStaff.addAll(managers);
@@ -94,7 +110,7 @@ public class ManagerController {
     availableDinnerStaff.addAll(availDinnerManagers);
     availableDinnerStaff.sort(Comparator.comparing(AppUser::getFullName));
 
-    // Saved selections
+    // Saved selections (username values)
     Map<String,String> saved = new HashMap<>();
     assignmentRepo.findByShift_Date(target).forEach(a -> {
       Position pos = a.getShift().getPosition();
@@ -120,7 +136,9 @@ public class ManagerController {
           default -> null;
         };
       };
-      if (key != null) saved.put(key, a.getEmployee().getUsername());
+      if (key != null && a.getEmployee() != null) {
+        saved.put(key, a.getEmployee().getUsername());
+      }
     });
 
     model.addAttribute("date", target);
@@ -138,10 +156,12 @@ public class ManagerController {
 
     model.addAttribute("saved", saved);
     model.addAttribute("active", "manager-schedule");
+
+    model.addAttribute("locked", isLocked(target));
+
     return "manager/day";
   }
 
-  // Helper: only include users with availability for that day+period
   private List<AppUser> filterByAvailability(List<AppUser> users, DayOfWeek day, ShiftPeriod period) {
     List<AppUser> out = new ArrayList<>();
     for (AppUser u : users) {
@@ -159,8 +179,14 @@ public class ManagerController {
   @PostMapping("/schedule/{date}")
   public String saveDay(@PathVariable String date,
                         @RequestParam Map<String,String> params,
-                        @RequestParam(name="action", required=false) String action) {
+                        @RequestParam(name="action", required=false) String action,
+                        RedirectAttributes redirectAttributes) {
     LocalDate target = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
+
+    if (isLocked(target)) {
+      redirectAttributes.addFlashAttribute("error", "This period is POSTED. Editing is locked.");
+      return "redirect:/manager/schedule/" + date;
+    }
 
     if ("clear".equalsIgnoreCase(action)) {
       assignmentRepo.deleteByShift_Date(target);
@@ -191,12 +217,11 @@ public class ManagerController {
       RoleOption ro = roleMap.get(key);
       if (ro == null) continue;
 
-      // Enforce: only MANAGERs can be assigned to Manager role
+      // Enforce: only MANAGERs can be assigned to Lunch Manager role
       if ("role_LUNCH_MANAGER".equals(key)) {
         var userOpt = userRepo.findByUsername(username);
         if (userOpt.isEmpty() || userOpt.get().getRoles().stream().noneMatch(r -> "MANAGER".equals(r.getName()))) {
-          // ignore invalid assignment attempt
-          continue;
+          continue; // ignore invalid assignment attempt
         }
       }
 
