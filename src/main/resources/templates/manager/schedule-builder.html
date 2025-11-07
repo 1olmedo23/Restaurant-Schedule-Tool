@@ -1,16 +1,43 @@
 <th:block th:with="active='manager-schedule'"
           th:replace="~{layout :: base(~{::section})}">
     <section>
-        <h1 class="h4 mb-3">Schedule Builder (2 Weeks)</h1>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <a th:href="@{/manager/schedule-builder(start=${prevStart})}"
+               class="btn btn-sm btn-outline-secondary">◀ Previous 2 weeks</a>
+
+            <div class="text-center flex-grow-1">
+                <h1 class="h4 mb-0">Schedule Builder (2 Weeks)</h1>
+                <div class="text-muted small">
+                    <strong th:text="${#temporals.format(windowStart,'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                    &nbsp;→&nbsp;
+                    <strong th:text="${#temporals.format(windowEnd,'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a th:href="@{/manager/schedule-builder(start=${nextStart})}"
+                   class="btn btn-sm btn-outline-secondary">Next 2 weeks ▶</a>
+                <!-- Today button: no start param = jumps to the window containing today -->
+                <a th:href="@{/manager/schedule-builder}"
+                   class="btn btn-sm btn-primary">Today</a>
+            </div>
+        </div>
+
         <p class="text-muted">Click a day to assign employees to roles.</p>
 
         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-3">
             <div class="col" th:each="d : ${days}">
                 <a class="card h-100 text-decoration-none hover-card"
+                   th:classappend="${(d.equals(today) ? ' today-card' : '') + (postedDates.contains(d) ? ' posted-card' : '')}"
                    th:href="@{'/manager/schedule/' + ${#temporals.format(d, 'yyyy-MM-dd')}}">
+
                     <div class="card-body">
                         <h5 class="card-title mb-1" th:text="${#temporals.format(d,'EEEE')}">Day</h5>
                         <div class="small text-muted" th:text="${#temporals.format(d,'MM/dd')}">00/00</div>
+                        <div class="small text-muted"
+                             th:if="${(d.equals(today) == true)}"><strong>Today</strong></div>
+
+                        <!-- Closed badge on Monday(1)/Sunday(7) -->
                         <div class="mt-2 badge bg-secondary"
                              th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">
                             Closed
@@ -21,4 +48,3 @@
         </div>
     </section>
 </th:block>
-

@@ -81,24 +81,42 @@ public class EmployeeController {
     return "redirect:/employee/availability?saved";
   }
 
-  // === My Schedule (two weeks: current Mon–Sun + next Mon–Sun) ===
+  // === My Schedule: navigate every 2-week block; populate only if POSTED ===
   @GetMapping("/schedule")
-  public String mySchedule(org.springframework.security.core.Authentication auth, org.springframework.ui.Model model) {
+  public String mySchedule(
+          @RequestParam(value = "start", required = false)
+          @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+          java.time.LocalDate start,
+          org.springframework.ui.Model model) {
+
     model.addAttribute("active", "employee-schedule");
 
-    // Use latest POSTED if present, else current two-week window (will render dashes)
-    java.util.Optional<java.time.LocalDate> postedStartOpt = scheduleViewService.latestPostedStart();
-    java.time.LocalDate periodStart = postedStartOpt.orElse(scheduleViewService.mondayOf(java.time.LocalDate.now()));
+    // Determine target 2-week block start (aligned to Monday)
+    java.time.LocalDate baseStart;
+    if (start != null) {
+      baseStart = scheduleViewService.mondayOf(start);
+    } else {
+      // default: latest POSTED start, else current Monday
+      baseStart = scheduleViewService.latestPostedStart()
+              .orElse(scheduleViewService.mondayOf(java.time.LocalDate.now()));
+    }
+
+    java.time.LocalDate periodStart  = baseStart;
     java.time.LocalDate week2Start   = periodStart.plusWeeks(1);
     java.time.LocalDate endInclusive = week2Start.plusDays(6);
 
+    // Build the two week date lists (always render the grid)
     java.util.List<java.time.LocalDate> week1 = new java.util.ArrayList<>(7);
     java.util.List<java.time.LocalDate> week2 = new java.util.ArrayList<>(7);
     for (int i = 0; i < 7; i++) week1.add(periodStart.plusDays(i));
     for (int i = 0; i < 7; i++) week2.add(week2Start.plusDays(i));
 
+    // Populate assignments ONLY if this start corresponds to a POSTED period
+    boolean isPosted = scheduleViewService.isPostedStart(periodStart);
+    boolean anyPosted = scheduleViewService.latestPostedStart().isPresent();
+
     java.util.Map<String, java.util.Map<String, com.resto.scheduler.model.Assignment>> assignmentsGrid = new java.util.HashMap<>();
-    if (postedStartOpt.isPresent()) {
+    if (isPosted) {
       var allAssignments = assignmentRepo.findByShift_DateBetween(periodStart, endInclusive);
       for (com.resto.scheduler.model.Assignment a : allAssignments) {
         var s = a.getShift();
@@ -109,10 +127,21 @@ public class EmployeeController {
       }
     }
 
+    // Prev/Next are always available (step by 2 weeks)
+    java.time.LocalDate prevStart = periodStart.minusWeeks(2);
+    java.time.LocalDate nextStart = periodStart.plusWeeks(2);
+
+    model.addAttribute("hasPeriods", true); // we always render the grid now
+    model.addAttribute("isPosted", isPosted);
     model.addAttribute("startDate", periodStart);
+    model.addAttribute("endDate", periodStart.plusDays(13));
     model.addAttribute("week1", week1);
     model.addAttribute("week2", week2);
     model.addAttribute("assignmentsGrid", assignmentsGrid);
+    model.addAttribute("prevStart", prevStart);
+    model.addAttribute("nextStart", nextStart);
+    model.addAttribute("anyPosted", anyPosted);
+
     return "employee/schedule";
   }
 }

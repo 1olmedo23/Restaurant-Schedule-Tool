@@ -11,3 +11,27 @@
     font-weight: 600;
     border-bottom:2px solid #0d6efd
 }
+
+/* Highlight the current day in the manager 31-day view */
+.today-card {
+    background: rgba(13, 110, 253, 0.08);       /* light Bootstrap primary tint */
+    border-color: rgba(13, 110, 253, 0.45);
+}
+
+/* Keep hover feeling nice over the tint */
+.today-card.hover-card:hover {
+    box-shadow: 0 .5rem 1rem rgba(13, 110, 253, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Yellow highlight for days inside any POSTED period */
+.posted-card {
+    background: rgba(255, 193, 7, 0.10);           /* light warning tint */
+    border-color: rgba(255, 193, 7, 0.55);
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.55);
+}
+
+/* If today is also posted, keep the blue fill but retain a stronger amber outline */
+.today-card.posted-card {
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.85);
+}

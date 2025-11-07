@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -51,13 +52,49 @@ public class ManagerController {
             .orElse(false);
   }
 
+  // import stays: org.springframework.format.annotation.DateTimeFormat
+
   @GetMapping("/schedule-builder")
-  public String scheduleBuilder(Model model) {
-    LocalDate today = LocalDate.now();
-    List<LocalDate> days = new ArrayList<>();
-    IntStream.range(0, 14).forEach(i -> days.add(today.plusDays(i)));
+  public String scheduleBuilder(
+          @RequestParam(value = "start", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+          Model model
+  ) {
+    // Anchor/start of the 14-day window: provided ?start=YYYY-MM-DD or today
+    LocalDate windowStart = (start != null ? start : LocalDate.now());
+
+    // Build 14 consecutive days (two weeks)
+    List<LocalDate> days = new ArrayList<>(14);
+    for (int i = 0; i < 14; i++) {
+      days.add(windowStart.plusDays(i));
+    }
+
+    // Prev/next window anchors (jump exactly ±14 days)
+    LocalDate prevStart = windowStart.minusDays(14);
+    LocalDate nextStart = windowStart.plusDays(14);
+
+    // collect all dates in this window that belong to any POSTED period
+    LocalDate windowEnd = windowStart.plusDays(13);
+    var postedPeriods = schedulePeriodRepo.findPostedOverlapping(windowStart, windowEnd);
+    java.util.Set<LocalDate> postedDates = new java.util.HashSet<>();
+    for (var p : postedPeriods) {
+      for (LocalDate d = p.getStartDate(); !d.isAfter(p.getEndDate()); d = d.plusDays(1)) {
+        if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) {
+          postedDates.add(d);
+        }
+      }
+    }
+
     model.addAttribute("days", days);
-    model.addAttribute("startDate", today);
+    model.addAttribute("windowStart", windowStart);
+    model.addAttribute("windowEnd", windowStart.plusDays(13));
+    model.addAttribute("prevStart", prevStart);
+    model.addAttribute("nextStart", nextStart);
+
+    // Keep Today + active for header and card tint
+    model.addAttribute("today", LocalDate.now());
+    model.addAttribute("postedDates", postedDates);
+
     model.addAttribute("active", "manager-schedule");
     return "manager/schedule-builder";
   }
