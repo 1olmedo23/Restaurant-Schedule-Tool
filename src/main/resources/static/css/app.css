@@ -35,3 +35,15 @@
 .today-card.posted-card {
     box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.85);
 }
+
+/* Edited (amended) day tint */
+.amended-card {
+    background: rgba(255, 159, 64, 0.10);         /* light orange */
+    border-color: rgba(255, 159, 64, 0.55);
+    box-shadow: inset 0 0 0 2px rgba(255, 159, 64, 0.45);
+}
+
+/* If today is amended too, keep blue but add stronger orange outline */
+.today-card.amended-card {
+    box-shadow: inset 0 0 0 2px rgba(255, 159, 64, 0.85);
+}

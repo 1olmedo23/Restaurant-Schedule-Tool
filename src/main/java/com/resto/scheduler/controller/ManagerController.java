@@ -2,14 +2,11 @@ package com.resto.scheduler.controller;
 
 import com.resto.scheduler.model.AppUser;
 import com.resto.scheduler.model.Assignment;
+import com.resto.scheduler.model.SchedulePeriod;
 import com.resto.scheduler.model.Shift;
 import com.resto.scheduler.model.enums.Position;
 import com.resto.scheduler.model.enums.ShiftPeriod;
-import com.resto.scheduler.repository.AppUserRepository;
-import com.resto.scheduler.repository.AssignmentRepository;
-import com.resto.scheduler.repository.AvailabilityRepository;
-import com.resto.scheduler.repository.SchedulePeriodRepository;
-import com.resto.scheduler.repository.ShiftRepository;
+import com.resto.scheduler.repository.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import org.springframework.security.core.Authentication;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -33,17 +31,20 @@ public class ManagerController {
   private final AssignmentRepository assignmentRepo;
   private final AvailabilityRepository availabilityRepo;
   private final SchedulePeriodRepository schedulePeriodRepo;
+  private final AmendmentRepository amendmentRepo;
 
   public ManagerController(AppUserRepository userRepo,
                            ShiftRepository shiftRepo,
                            AssignmentRepository assignmentRepo,
                            AvailabilityRepository availabilityRepo,
-                           SchedulePeriodRepository schedulePeriodRepo) {
+                           SchedulePeriodRepository schedulePeriodRepo,
+                           AmendmentRepository amendmentRepo) {
     this.userRepo = userRepo;
     this.shiftRepo = shiftRepo;
     this.assignmentRepo = assignmentRepo;
     this.availabilityRepo = availabilityRepo;
     this.schedulePeriodRepo = schedulePeriodRepo;
+    this.amendmentRepo = amendmentRepo;
   }
 
   private boolean isLocked(LocalDate date) {
@@ -76,7 +77,12 @@ public class ManagerController {
     // collect all dates in this window that belong to any POSTED period
     LocalDate windowEnd = windowStart.plusDays(13);
     var postedPeriods = schedulePeriodRepo.findPostedOverlapping(windowStart, windowEnd);
+    var amendmentsInWindow = amendmentRepo.findByDateBetween(windowStart, windowEnd);
+    java.util.Set<LocalDate> amendedDates = new java.util.HashSet<>();
     java.util.Set<LocalDate> postedDates = new java.util.HashSet<>();
+    for (var a : amendmentsInWindow) {
+      amendedDates.add(a.getDate());
+    }
     for (var p : postedPeriods) {
       for (LocalDate d = p.getStartDate(); !d.isAfter(p.getEndDate()); d = d.plusDays(1)) {
         if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) {
@@ -90,6 +96,7 @@ public class ManagerController {
     model.addAttribute("windowEnd", windowStart.plusDays(13));
     model.addAttribute("prevStart", prevStart);
     model.addAttribute("nextStart", nextStart);
+    model.addAttribute("amendedDates", amendedDates);
 
     // Keep Today + active for header and card tint
     model.addAttribute("today", LocalDate.now());
@@ -178,6 +185,39 @@ public class ManagerController {
       }
     });
 
+    // Amendments for this day → map to the same keys as the selects
+    Map<String, String> amended = new HashMap<>();
+    var amps = amendmentRepo.findByDate(target);
+    for (var a : amps) {
+      String key = switch (a.getPeriod()) {
+        case LUNCH -> switch (a.getPosition()) {
+          case LUNCH_SERVER    -> "role_LUNCH_SERVER";
+          case LUNCH_ASSISTANT -> "role_LUNCH_ASSISTANT";
+          case LUNCH_MANAGER   -> "role_LUNCH_MANAGER";
+          default -> null;
+        };
+        case DINNER -> switch (a.getPosition()) {
+          case SERVER_1 -> "role_DINNER_SERVER_1";
+          case SERVER_2 -> "role_DINNER_SERVER_2";
+          case SERVER_3 -> "role_DINNER_SERVER_3";
+          case SUSHI    -> "role_DINNER_SUSHI";
+          case EXPO     -> "role_DINNER_EXPO";
+          case BUSSER_1 -> "role_DINNER_BUSSER_1";
+          case BUSSER_2 -> "role_DINNER_BUSSER_2";
+          case HOST_1   -> "role_DINNER_HOST_1";
+          case HOST_2   -> "role_DINNER_HOST_2";
+          case FLOAT    -> "role_DINNER_FLOAT";
+          default -> null;
+        };
+      };
+      if (key != null) {
+        String orig = (a.getOriginalEmployee() != null) ? a.getOriginalEmployee().getFullName() : "—";
+        String now  = (a.getNewEmployee()      != null) ? a.getNewEmployee().getFullName()      : "—";
+        amended.put(key, orig + " → " + now);
+      }
+    }
+
+    model.addAttribute("amended", amended);
     model.addAttribute("date", target);
     model.addAttribute("prevDate", target.minusDays(1));
     model.addAttribute("nextDate", target.plusDays(1));
@@ -217,19 +257,26 @@ public class ManagerController {
   public String saveDay(@PathVariable String date,
                         @RequestParam Map<String,String> params,
                         @RequestParam(name="action", required=false) String action,
+                        Authentication auth,
                         RedirectAttributes redirectAttributes) {
     LocalDate target = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
 
-    if (isLocked(target)) {
-      redirectAttributes.addFlashAttribute("error", "This period is POSTED. Editing is locked.");
+    boolean override = "1".equals(params.getOrDefault("override", "0"));
+    boolean inPostedPeriod = schedulePeriodRepo.findPostedContaining(target).isPresent();
+
+    // Respect lock unless override
+    if (inPostedPeriod && !override) {
+      redirectAttributes.addFlashAttribute("error", "This period is POSTED. Editing is locked. Use 'Edit anyway'.");
       return "redirect:/manager/schedule/" + date;
     }
 
     if ("clear".equalsIgnoreCase(action)) {
       assignmentRepo.deleteByShift_Date(target);
+      // We’re not auto-writing amendments for a full clear, keeping it simple.
       return "redirect:/manager/schedule/{date}?cleared";
     }
 
+    // Build role map (unchanged)
     Map<String, RoleOption> roleMap = new HashMap<>();
     for (var ro : List.of(
             new RoleOption("role_LUNCH_SERVER","Server", ShiftPeriod.LUNCH, Position.LUNCH_SERVER),
@@ -247,21 +294,34 @@ public class ManagerController {
             new RoleOption("role_DINNER_FLOAT","FLOAT", ShiftPeriod.DINNER, Position.FLOAT)
     )) roleMap.put(ro.key(), ro);
 
+    // Who is making the change (optional)
+    AppUser changer = null;
+    if (auth != null && auth.getName() != null) {
+      changer = userRepo.findByUsername(auth.getName()).orElse(null);
+    }
+
+    // The posted period (for Amendment linkage)
+    var spOpt = schedulePeriodRepo.findPostedContaining(target);
+    Long postedPeriodId = spOpt.map(SchedulePeriod::getId).orElse(null);
+
     for (Map.Entry<String,String> e : params.entrySet()) {
       String key = e.getKey();
       if (!key.startsWith("role_")) continue;
+
       String username = e.getValue();
       RoleOption ro = roleMap.get(key);
       if (ro == null) continue;
 
-      // Enforce: only MANAGERs can be assigned to Lunch Manager role
+      // Lunch Manager must be a MANAGER
       if ("role_LUNCH_MANAGER".equals(key)) {
         var userOpt = userRepo.findByUsername(username);
-        if (userOpt.isEmpty() || userOpt.get().getRoles().stream().noneMatch(r -> "MANAGER".equals(r.getName()))) {
-          continue; // ignore invalid assignment attempt
+        if (userOpt.isPresent()) {
+          boolean isManager = userOpt.get().getRoles().stream().anyMatch(r -> "MANAGER".equals(r.getName()));
+          if (!isManager) continue;
         }
       }
 
+      // Current assignment (old)
       Shift shift = shiftRepo.findByDateAndPeriodAndPosition(target, ro.period(), ro.position())
               .orElseGet(() -> {
                 Shift s = new Shift();
@@ -271,18 +331,52 @@ public class ManagerController {
                 return shiftRepo.save(s);
               });
 
+      var currentAssignmentOpt = assignmentRepo.findByShift(shift);
+      AppUser oldEmp = currentAssignmentOpt.map(Assignment::getEmployee).orElse(null);
+
+      // Apply new value
       if (username == null || username.isBlank()) {
-        assignmentRepo.findByShift(shift).ifPresent(assignmentRepo::delete);
-        continue;
+        currentAssignmentOpt.ifPresent(assignmentRepo::delete);
+      } else {
+        AppUser user = userRepo.findByUsername(username).orElse(null);
+        if (user == null) continue;
+        Assignment a = currentAssignmentOpt.orElseGet(Assignment::new);
+        a.setShift(shift);
+        a.setEmployee(user);
+        assignmentRepo.save(a);
       }
 
-      AppUser user = userRepo.findByUsername(username).orElse(null);
-      if (user == null) continue;
+      // If it's a posted day + override and the assignee changed, upsert Amendment
+      if (postedPeriodId != null && override) {
+        AppUser newEmp = null;
+        if (username != null && !username.isBlank()) {
+          newEmp = userRepo.findByUsername(username).orElse(null);
+        }
 
-      Assignment a = assignmentRepo.findByShift(shift).orElseGet(Assignment::new);
-      a.setShift(shift);
-      a.setEmployee(user);
-      assignmentRepo.save(a);
+        boolean changed = (oldEmp == null && newEmp != null)
+                || (oldEmp != null && newEmp == null)
+                || (oldEmp != null && newEmp != null && !Objects.equals(oldEmp.getId(), newEmp.getId()));
+
+        if (changed) {
+          var amendOpt = amendmentRepo.findBySchedulePeriod_IdAndDateAndPeriodAndPosition(
+                  postedPeriodId, target, ro.period(), ro.position());
+
+          var amendment = amendOpt.orElseGet(() -> {
+            var a = new com.resto.scheduler.model.Amendment();
+            a.setSchedulePeriod(spOpt.get());
+            a.setDate(target);
+            a.setPeriod(ro.period());
+            a.setPosition(ro.position());
+            a.setOriginalEmployee(oldEmp); // capture once
+            return a;
+          });
+
+          amendment.setNewEmployee(newEmp);   // update to latest
+          amendment.setChangedBy(changer);
+          amendment.setChangedAt(java.time.LocalDateTime.now());
+          amendmentRepo.save(amendment);
+        }
+      }
     }
 
     return "redirect:/manager/schedule/{date}?saved";

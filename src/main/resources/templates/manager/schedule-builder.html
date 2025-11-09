@@ -28,9 +28,10 @@
         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-3">
             <div class="col" th:each="d : ${days}">
                 <a class="card h-100 text-decoration-none hover-card"
-                   th:classappend="${(d.equals(today) ? ' today-card' : '') + (postedDates.contains(d) ? ' posted-card' : '')}"
+                   th:classappend="${(d.equals(today) ? ' today-card' : '')
+                    + (postedDates.contains(d) ? ' posted-card' : '')
+                    + (amendedDates.contains(d) ? ' amended-card' : '')}"
                    th:href="@{'/manager/schedule/' + ${#temporals.format(d, 'yyyy-MM-dd')}}">
-
                     <div class="card-body">
                         <h5 class="card-title mb-1" th:text="${#temporals.format(d,'EEEE')}">Day</h5>
                         <div class="small text-muted" th:text="${#temporals.format(d,'MM/dd')}">00/00</div>
@@ -38,9 +39,11 @@
                              th:if="${(d.equals(today) == true)}"><strong>Today</strong></div>
 
                         <!-- Closed badge on Monday(1)/Sunday(7) -->
-                        <div class="mt-2 badge bg-secondary"
-                             th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">
-                            Closed
+                        <div class="mt-2">
+      <span class="badge bg-secondary me-1"
+            th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">Closed</span>
+                            <span class="badge bg-warning text-dark"
+                                  th:if="${amendedDates.contains(d)}">Edited</span>
                         </div>
                     </div>
                 </a>

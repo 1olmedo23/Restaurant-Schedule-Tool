@@ -41,4 +41,11 @@ public interface SchedulePeriodRepository extends JpaRepository<SchedulePeriod, 
     java.util.List<com.resto.scheduler.model.SchedulePeriod> findPostedOverlapping(
             @Param("start") java.time.LocalDate start,
             @Param("end")   java.time.LocalDate end);
+    @Query("""
+  select p from SchedulePeriod p
+  where lower(p.status) = 'posted'
+    and :d between p.startDate and p.endDate
+""")
+    Optional<com.resto.scheduler.model.SchedulePeriod> findPostedContaining(@Param("d") LocalDate d);
+
 }
