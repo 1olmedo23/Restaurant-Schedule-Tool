@@ -8,4 +8,6 @@ import java.util.*;
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
     Optional<Shift> findByDateAndPeriodAndPosition(LocalDate date, ShiftPeriod period, Position position);
     List<Shift> findByDate(LocalDate date);
+
+    List<Shift> findByDateBetween(LocalDate start, LocalDate end);
 }

@@ -4,6 +4,7 @@ import com.resto.scheduler.model.Assignment;
 import com.resto.scheduler.model.SchedulePeriod;
 import com.resto.scheduler.repository.AssignmentRepository;
 import com.resto.scheduler.repository.SchedulePeriodRepository;
+import com.resto.scheduler.service.PublishService;
 import com.resto.scheduler.service.ScheduleViewService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -21,13 +22,16 @@ public class ManagerPublishController {
     private final SchedulePeriodRepository schedulePeriods;
     private final AssignmentRepository assignmentRepo;
     private final ScheduleViewService scheduleView;
+    private final PublishService publishService;
 
     public ManagerPublishController(SchedulePeriodRepository schedulePeriods,
                                     AssignmentRepository assignmentRepo,
-                                    ScheduleViewService scheduleView) {
+                                    ScheduleViewService scheduleView,
+                                    PublishService publishService) {
         this.schedulePeriods = schedulePeriods;
         this.assignmentRepo = assignmentRepo;
         this.scheduleView = scheduleView;
+        this.publishService = publishService;
     }
 
     private SchedulePeriod ensureCurrentPeriod() {
@@ -75,6 +79,10 @@ public class ManagerPublishController {
         model.addAttribute("assignmentsGrid", assignmentsGrid);
         model.addAttribute("active", "manager-publish");
 
+        // expose whether there is at least one POSTED period to enable the Republish button
+        boolean hasPosted = schedulePeriods.findTopByStatusOrderByStartDateDesc("POSTED").isPresent();
+        model.addAttribute("hasPosted", hasPosted);
+
         return "manager/publish";
     }
 
@@ -88,6 +96,22 @@ public class ManagerPublishController {
         if (uid instanceof Long) sp.setPostedByUserId((Long) uid);
 
         schedulePeriods.save(sp);
+
+        // >>> Create/refresh the published snapshot for this just-posted period
+        publishService.snapshotPeriod(sp.getId());
+
         return "redirect:/manager/publish?posted=1";
     }
+
+    @PostMapping("/republish-latest")
+    public String republishLatest() {
+        var opt = schedulePeriods.findTopByStatusOrderByStartDateDesc("POSTED");
+        if (opt.isEmpty()) {
+            return "redirect:/manager/publish?republished=0";
+        }
+        var sp = opt.get();
+        publishService.snapshotPeriod(sp.getId());
+        return "redirect:/manager/publish?republished=1";
+    }
 }
+
