@@ -20,4 +20,7 @@ public interface AmendmentRepository extends JpaRepository<Amendment, Long> {
     );
 
     List<Amendment> findByDate(LocalDate date);
+
+    // Returns true if at least one amendment exists for the given period
+    boolean existsBySchedulePeriod_Id(Long schedulePeriodId);
 }

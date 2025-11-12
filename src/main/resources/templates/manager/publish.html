@@ -1,31 +1,51 @@
 <th:block th:replace="~{layout :: base(~{::section})}">
     <section>
-        <h1 class="h4 mb-3">Publish Schedule</h1>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="h4 mb-0">Publish Schedule</h1>
+            <div class="btn-group">
+                <a class="btn btn-outline-secondary" th:href="@{/manager/publish(start=${prevStart})}">Prev 2 weeks</a>
+                <a class="btn btn-outline-secondary" th:href="@{/manager/publish(start=${nextStart})}">Next 2 weeks</a>
+            </div>
+        </div>
 
-        <div class="alert alert-info" th:text="${banner}">Period status</div>
+        <div class="alert mt-3"
+             th:classappend="${isPosted} ? 'alert-success' : 'alert-secondary'"
+             th:text="${banner}">
+            Period status
+        </div>
 
-        <!-- Week previews (unchanged) -->
-        <h2 class="h6 mt-4">Week 1 Preview</h2>
+        <div class="mb-2">
+            <span class="badge rounded-pill text-bg-success" th:if="${isPosted}">Posted</span>
+            <span class="badge rounded-pill text-bg-warning" th:if="${isPosted and needsRepublish}">Needs republish</span>
+            <span class="badge rounded-pill text-bg-secondary" th:if="${!isPosted}">Draft</span>
+        </div>
+
+        <h2 class="h6 mt-3">Week 1 Preview</h2>
         <div th:replace="~{fragments/schedule-table :: scheduleTable(${week1})}"></div>
 
         <h2 class="h6 mt-4">Week 2 Preview</h2>
         <div th:replace="~{fragments/schedule-table :: scheduleTable(${week2})}"></div>
 
-        <!-- First-time POST -->
-        <form th:if="${period.status != 'POSTED'}" method="post" th:action="@{/manager/publish}" class="mt-4">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <button class="btn btn-primary">Post Schedule</button>
-        </form>
+        <div class="d-flex gap-2 mt-4">
+            <!-- Post: allowed whether or not a period currently exists -->
+            <form method="post" th:action="@{/manager/publish/post}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="start" th:value="${period != null ? period.startDate : windowStart}"/>
+                <button class="btn btn-primary" th:disabled="${isPosted}">Post Schedule</button>
+            </form>
 
-        <!-- REPUBLISH latest POSTED -->
-        <form th:if="${period.status == 'POSTED' and hasPosted}" method="post"
-              th:action="@{/manager/publish/republish-latest}" class="mt-2">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <button class="btn btn-outline-primary">Republish Snapshot</button>
-        </form>
+            <!-- Republish: only when already POSTED -->
+            <form th:if="${isPosted}" method="post" th:action="@{/manager/publish/republish}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="start" th:value="${period.startDate}"/>
+                <button class="btn btn-warning" th:disabled="${!needsRepublish}">Republish Snapshot</button>
+            </form>
+        </div>
 
-        <div th:if="${param.posted}" class="alert alert-success mt-3">Schedule posted.</div>
-        <div th:if="${param.republished == 1}" class="alert alert-info mt-3">Snapshot republished.</div>
-        <div th:if="${param.republished == 0}" class="alert alert-warning mt-3">No POSTED period to republish.</div>
+        <div class="mt-3">
+            <div class="alert alert-success" th:if="${param.posted}">Schedule posted.</div>
+            <div class="alert alert-success" th:if="${param.republished == '1'}">Snapshot republished.</div>
+            <div class="alert alert-secondary" th:if="${param.republished == '0'}">Nothing to republish for this period.</div>
+        </div>
     </section>
 </th:block>

@@ -1,5 +1,5 @@
 <th:block th:replace="~{layout :: base(~{::section})}">
-<section>
+    <section>
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h1 class="h4 mb-0"
@@ -9,6 +9,7 @@
                 <div class="text-muted small">
                     <span th:if="${param.saved}">Saved.</span>
                     <span th:if="${param.cleared}">Cleared.</span>
+                    <span th:if="${error}" th:text="${error}"></span>
                 </div>
             </div>
             <div>
@@ -20,8 +21,8 @@
         </div>
 
         <div th:if="${locked}" class="alert alert-warning mt-3">
-            This date is in a POSTED period. Normal saving is disabled.
-            Use <strong>Save (Edit anyway)</strong> to record a change and create an amendment.
+            This date is in a <strong>POSTED</strong> period. Normal saving is disabled.
+            Use <strong>“Save (Edit anyway)”</strong> or <strong>“Clear (Edit anyway)”</strong> to record changes as amendments.
         </div>
 
         <div th:if="${param.saved}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
@@ -33,136 +34,135 @@
               th:action="@{'/manager/schedule/' + ${#temporals.format(date,'yyyy-MM-dd')}}"
               method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <!-- Hidden override flag toggled by the yellow buttons -->
+            <input type="hidden" id="override" name="override" value="0"/>
 
-            <!-- disable when locked -->
-            <fieldset>
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-light">
-                        <tr><th style="width:120px;">Shift</th><th style="width:160px;">Role</th><th>Assign</th></tr>
-                        </thead>
-                        <tbody>
-                        <!-- LUNCH -->
-                        <tr class="table-secondary"><th colspan="3">Lunch</th></tr>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr><th style="width:120px;">Shift</th><th style="width:160px;">Role</th><th>Assign</th></tr>
+                    </thead>
+                    <tbody>
+                    <!-- LUNCH -->
+                    <tr class="table-secondary"><th colspan="3">Lunch</th></tr>
 
-                        <tr th:each="role : ${lunchRoles}">
-                            <td>Lunch</td>
-                            <td th:text="${role.label()}"></td>
-                            <td>
-                                <!-- availability-based -->
-                                <select class="form-select role-select role-select-filtered"
-                                        th:id="${role.key()} + '_filtered'"
-                                        th:name="${role.key()}">
-                                    <option value="">— Select —</option>
+                    <tr th:each="role : ${lunchRoles}">
+                        <td>Lunch</td>
+                        <td th:text="${role.label()}"></td>
+                        <td>
+                            <!-- availability-based -->
+                            <select class="form-select role-select role-select-filtered"
+                                    th:id="${role.key()} + '_filtered'"
+                                    th:name="${role.key()}">
+                                <option value="">— Select —</option>
 
-                                    <!-- Manager role: managers only (available) -->
-                                    <option th:if="${role.key() == 'role_LUNCH_MANAGER'}"
-                                            th:each="u : ${availableLunchManagers}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
+                                <!-- Manager role: managers only (available) -->
+                                <option th:if="${role.key() == 'role_LUNCH_MANAGER'}"
+                                        th:each="u : ${availableLunchManagers}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
 
-                                    <!-- Other lunch roles: employees + managers (available) -->
-                                    <option th:if="${role.key() != 'role_LUNCH_MANAGER'}"
-                                            th:each="u : ${availableLunchStaff}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
-                                </select>
+                                <!-- Other lunch roles: employees + managers (available) -->
+                                <option th:if="${role.key() != 'role_LUNCH_MANAGER'}"
+                                        th:each="u : ${availableLunchStaff}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
+                            </select>
 
-                                <!-- NEW: show amendment label if present -->
-                                <div class="text-warning small mt-1"
-                                     th:if="${amended[__${role.key()}__] != null}">
-                                    Edited: <span th:text="${amended[__${role.key()}__]}"></span>
-                                </div>
+                            <!-- Amendment hint -->
+                            <div class="text-warning small mt-1"
+                                 th:if="${amended[__${role.key()}__] != null}">
+                                Edited: <span th:text="${amended[__${role.key()}__]}"></span>
+                            </div>
 
-                                <!-- override: all eligible users -->
-                                <select class="form-select role-select role-select-all d-none mt-2"
-                                        th:id="${role.key()} + '_all'"
-                                        disabled>
-                                    <option value="">— Select (override) —</option>
+                            <!-- override: all eligible users -->
+                            <select class="form-select role-select role-select-all d-none mt-2"
+                                    th:id="${role.key()} + '_all'"
+                                    disabled>
+                                <option value="">— Select (override) —</option>
 
-                                    <!-- Manager override: managers only -->
-                                    <option th:if="${role.key() == 'role_LUNCH_MANAGER'}"
-                                            th:each="u : ${allManagers}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
+                                <!-- Manager override: managers only -->
+                                <option th:if="${role.key() == 'role_LUNCH_MANAGER'}"
+                                        th:each="u : ${allManagers}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
 
-                                    <!-- Other lunch overrides: all staff -->
-                                    <option th:if="${role.key() != 'role_LUNCH_MANAGER'}"
-                                            th:each="u : ${allStaff}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
-                                </select>
+                                <!-- Other lunch overrides: all staff -->
+                                <option th:if="${role.key() != 'role_LUNCH_MANAGER'}"
+                                        th:each="u : ${allStaff}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
+                            </select>
 
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input override-checkbox" type="checkbox"
-                                           th:id="${role.key()} + '_override'"
-                                           th:attr="data-role=${role.key()}">
-                                    <label class="form-check-label small" th:for="${role.key()} + '_override'">
-                                        Override availability (show all)
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input override-checkbox" type="checkbox"
+                                       th:id="${role.key()} + '_override'"
+                                       th:attr="data-role=${role.key()}">
+                                <label class="form-check-label small" th:for="${role.key()} + '_override'">
+                                    Override availability (show all)
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
 
-                        <!-- DINNER -->
-                        <tr class="table-secondary"><th colspan="3">Dinner</th></tr>
+                    <!-- DINNER -->
+                    <tr class="table-secondary"><th colspan="3">Dinner</th></tr>
 
-                        <tr th:each="role : ${dinnerRoles}">
-                            <td>Dinner</td>
-                            <td th:text="${role.label()}"></td>
-                            <td>
-                                <!-- availability-based -->
-                                <select class="form-select role-select role-select-filtered"
-                                        th:id="${role.key()} + '_filtered'"
-                                        th:name="${role.key()}">
-                                    <option value="">— Select —</option>
-                                    <option th:each="u : ${availableDinnerStaff}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
-                                </select>
+                    <tr th:each="role : ${dinnerRoles}">
+                        <td>Dinner</td>
+                        <td th:text="${role.label()}"></td>
+                        <td>
+                            <!-- availability-based -->
+                            <select class="form-select role-select role-select-filtered"
+                                    th:id="${role.key()} + '_filtered'"
+                                    th:name="${role.key()}">
+                                <option value="">— Select —</option>
+                                <option th:each="u : ${availableDinnerStaff}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
+                            </select>
 
-                                <!-- NEW: show amendment label if present -->
-                                <div class="text-warning small mt-1"
-                                     th:if="${amended[__${role.key()}__] != null}">
-                                    Edited: <span th:text="${amended[__${role.key()}__]}"></span>
-                                </div>
+                            <!-- Amendment hint -->
+                            <div class="text-warning small mt-1"
+                                 th:if="${amended[__${role.key()}__] != null}">
+                                Edited: <span th:text="${amended[__${role.key()}__]}"></span>
+                            </div>
 
-                                <!-- override: all staff -->
-                                <select class="form-select role-select role-select-all d-none mt-2"
-                                        th:id="${role.key()} + '_all'"
-                                        disabled>
-                                    <option value="">— Select (override) —</option>
-                                    <option th:each="u : ${allStaff}"
-                                            th:value="${u.username}"
-                                            th:text="${u.fullName + ' (' + u.username + ')'}"
-                                            th:selected="${saved[role.key()] == u.username}">
-                                    </option>
-                                </select>
+                            <!-- override: all staff -->
+                            <select class="form-select role-select role-select-all d-none mt-2"
+                                    th:id="${role.key()} + '_all'"
+                                    disabled>
+                                <option value="">— Select (override) —</option>
+                                <option th:each="u : ${allStaff}"
+                                        th:value="${u.username}"
+                                        th:text="${u.fullName + ' (' + u.username + ')'}"
+                                        th:selected="${saved[role.key()] == u.username}">
+                                </option>
+                            </select>
 
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input override-checkbox" type="checkbox"
-                                           th:id="${role.key()} + '_override'"
-                                           th:attr="data-role=${role.key()}">
-                                    <label class="form-check-label small" th:for="${role.key()} + '_override'">
-                                        Override availability (show all)
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </fieldset>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input override-checkbox" type="checkbox"
+                                       th:id="${role.key()} + '_override'"
+                                       th:attr="data-role=${role.key()}">
+                                <label class="form-check-label small" th:for="${role.key()} + '_override'">
+                                    Override availability (show all)
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Buttons when NOT locked -->
             <div class="d-flex gap-2" th:if="${!locked}">
@@ -171,14 +171,17 @@
                         onclick="return confirm('Clear all assignments for this date?')">Clear All</button>
             </div>
 
-            <!-- Buttons when locked (override path) -->
+            <!-- Buttons when locked (force override=1) -->
             <div class="d-flex gap-2" th:if="${locked}">
                 <button type="submit" class="btn btn-warning"
-                        name="override" value="1">
+                        name="action" value="save"
+                        onclick="document.getElementById('override').value='1'">
                     Save (Edit anyway)
                 </button>
                 <button class="btn btn-outline-danger" type="submit" name="action" value="clear"
-                        onclick="return confirm('Clear all assignments for this date?')">Clear All</button>
+                        onclick="document.getElementById('override').value='1'; return confirm('Clear all assignments for this date?')">
+                    Clear (Edit anyway)
+                </button>
             </div>
         </form>
 

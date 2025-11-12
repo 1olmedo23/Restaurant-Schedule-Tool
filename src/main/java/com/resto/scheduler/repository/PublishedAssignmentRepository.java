@@ -15,6 +15,10 @@ public interface PublishedAssignmentRepository extends JpaRepository<PublishedAs
 
     List<PublishedAssignment> findByDateBetween(LocalDate start, LocalDate end);
 
+    List<PublishedAssignment> findBySchedulePeriod_IdAndDateBetween(Long schedulePeriodId,
+                                                                    LocalDate start, LocalDate end);
+    long countBySchedulePeriod_Id(Long schedulePeriodId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from PublishedAssignment p where p.schedulePeriod.id = :spid")
     void deleteAllBySchedulePeriodId(@Param("spid") Long schedulePeriodId);

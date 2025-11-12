@@ -102,7 +102,7 @@ public class EmployeeController {
     // Determine target 2-week block (Monday anchor)
     LocalDate baseStart = (start != null)
             ? scheduleViewService.mondayOf(start)
-            : scheduleViewService.latestPostedStart().orElse(scheduleViewService.mondayOf(LocalDate.now()));
+            : scheduleViewService.mondayOf(LocalDate.now());
 
     LocalDate periodStart  = baseStart;
     LocalDate week2Start   = periodStart.plusWeeks(1);

@@ -30,6 +30,10 @@ public interface SchedulePeriodRepository extends JpaRepository<SchedulePeriod, 
     Optional<SchedulePeriod> findFirstByStatusAndStartDateGreaterThanOrderByStartDateAsc(
             String status, LocalDate startExclusive);
 
+    Optional<SchedulePeriod> findTopByStartDateLessThanOrderByStartDateDesc(LocalDate startDate);
+
+    Optional<SchedulePeriod> findTopByStartDateGreaterThanOrderByStartDateAsc(LocalDate startDate);
+
     // Find POSTED periods that overlap a date range (for coloring the builder)
     @Query("""
   select p from SchedulePeriod p

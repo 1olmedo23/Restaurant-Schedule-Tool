@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import org.springframework.security.core.Authentication;
 import java.util.*;
-import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/manager")
@@ -47,13 +46,17 @@ public class ManagerController {
     this.amendmentRepo = amendmentRepo;
   }
 
-  private boolean isLocked(LocalDate date) {
-    return schedulePeriodRepo.findTopByStatusOrderByStartDateDesc("POSTED")
-            .map(sp -> !date.isBefore(sp.getStartDate()) && !date.isAfter(sp.getEndDate()))
-            .orElse(false);
+  /** Normalize any date to the Monday of its week. */
+  private LocalDate mondayOf(LocalDate d) {
+    DayOfWeek dow = d.getDayOfWeek(); // MON=1..SUN=7
+    int back = dow.getValue() - DayOfWeek.MONDAY.getValue();
+    return d.minusDays(back);
   }
 
-  // import stays: org.springframework.format.annotation.DateTimeFormat
+  /** Lock a day if it belongs to ANY posted period (not just the latest). */
+  private boolean isLocked(LocalDate date) {
+    return schedulePeriodRepo.findPostedContaining(date).isPresent();
+  }
 
   @GetMapping("/schedule-builder")
   public String scheduleBuilder(
@@ -61,47 +64,39 @@ public class ManagerController {
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
           Model model
   ) {
-    // Anchor/start of the 14-day window: provided ?start=YYYY-MM-DD or today
-    LocalDate windowStart = (start != null ? start : LocalDate.now());
+    // Anchor window to Monday (match Publish page behavior)
+    LocalDate anchor = mondayOf(start != null ? start : LocalDate.now());
+    LocalDate windowStart = anchor;
+    LocalDate windowEnd   = anchor.plusDays(13);
 
-    // Build 14 consecutive days (two weeks)
     List<LocalDate> days = new ArrayList<>(14);
-    for (int i = 0; i < 14; i++) {
-      days.add(windowStart.plusDays(i));
-    }
+    for (int i = 0; i < 14; i++) days.add(windowStart.plusDays(i));
 
-    // Prev/next window anchors (jump exactly ±14 days)
     LocalDate prevStart = windowStart.minusDays(14);
     LocalDate nextStart = windowStart.plusDays(14);
 
-    // collect all dates in this window that belong to any POSTED period
-    LocalDate windowEnd = windowStart.plusDays(13);
     var postedPeriods = schedulePeriodRepo.findPostedOverlapping(windowStart, windowEnd);
     var amendmentsInWindow = amendmentRepo.findByDateBetween(windowStart, windowEnd);
-    java.util.Set<LocalDate> amendedDates = new java.util.HashSet<>();
-    java.util.Set<LocalDate> postedDates = new java.util.HashSet<>();
-    for (var a : amendmentsInWindow) {
-      amendedDates.add(a.getDate());
-    }
+
+    Set<LocalDate> postedDates = new HashSet<>();
+    Set<LocalDate> amendedDates = new HashSet<>();
+
+    for (var a : amendmentsInWindow) amendedDates.add(a.getDate());
     for (var p : postedPeriods) {
       for (LocalDate d = p.getStartDate(); !d.isAfter(p.getEndDate()); d = d.plusDays(1)) {
-        if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) {
-          postedDates.add(d);
-        }
+        if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) postedDates.add(d);
       }
     }
 
     model.addAttribute("days", days);
     model.addAttribute("windowStart", windowStart);
-    model.addAttribute("windowEnd", windowStart.plusDays(13));
+    model.addAttribute("windowEnd", windowEnd);
     model.addAttribute("prevStart", prevStart);
     model.addAttribute("nextStart", nextStart);
+    model.addAttribute("postedDates", postedDates);
     model.addAttribute("amendedDates", amendedDates);
 
-    // Keep Today + active for header and card tint
     model.addAttribute("today", LocalDate.now());
-    model.addAttribute("postedDates", postedDates);
-
     model.addAttribute("active", "manager-schedule");
     return "manager/schedule-builder";
   }
@@ -185,7 +180,7 @@ public class ManagerController {
       }
     });
 
-    // Amendments for this day → map to the same keys as the selects
+    // Amendments (for posted periods)
     Map<String, String> amended = new HashMap<>();
     var amps = amendmentRepo.findByDate(target);
     for (var a : amps) {
@@ -225,17 +220,16 @@ public class ManagerController {
     model.addAttribute("lunchRoles", lunchRoles);
     model.addAttribute("dinnerRoles", dinnerRoles);
 
-    model.addAttribute("availableLunchStaff", availableLunchStaff); // employees + managers (available)
-    model.addAttribute("availableDinnerStaff", availableDinnerStaff); // employees + managers (available)
-    model.addAttribute("availableLunchManagers", availLunchManagers); // managers only (available)
-    model.addAttribute("allStaff", allStaff);                         // everyone (override)
-    model.addAttribute("allManagers", managers);                      // managers only (override)
+    model.addAttribute("availableLunchStaff", availableLunchStaff);
+    model.addAttribute("availableDinnerStaff", availableDinnerStaff);
+    model.addAttribute("availableLunchManagers", availLunchManagers);
+    model.addAttribute("allStaff", allStaff);
+    model.addAttribute("allManagers", managers);
 
     model.addAttribute("saved", saved);
     model.addAttribute("active", "manager-schedule");
 
-    model.addAttribute("locked", isLocked(target));
-
+    model.addAttribute("locked", isLocked(target)); // lock if any POSTED period contains this date
     return "manager/day";
   }
 
@@ -272,11 +266,9 @@ public class ManagerController {
 
     if ("clear".equalsIgnoreCase(action)) {
       assignmentRepo.deleteByShift_Date(target);
-      // We’re not auto-writing amendments for a full clear, keeping it simple.
       return "redirect:/manager/schedule/{date}?cleared";
     }
 
-    // Build role map (unchanged)
     Map<String, RoleOption> roleMap = new HashMap<>();
     for (var ro : List.of(
             new RoleOption("role_LUNCH_SERVER","Server", ShiftPeriod.LUNCH, Position.LUNCH_SERVER),
@@ -346,7 +338,7 @@ public class ManagerController {
         assignmentRepo.save(a);
       }
 
-      // If it's a posted day + override and the assignee changed, upsert Amendment
+      // If posted day + override and assignee changed, upsert Amendment
       if (postedPeriodId != null && override) {
         AppUser newEmp = null;
         if (username != null && !username.isBlank()) {

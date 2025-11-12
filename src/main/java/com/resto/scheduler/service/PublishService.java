@@ -6,4 +6,6 @@ public interface PublishService {
 
     /** Rebuild the snapshot for the latest POSTED period (no-op if none). */
     void snapshotLatestPosted();
+
+    boolean needsRepublish(Long schedulePeriodId);
 }
