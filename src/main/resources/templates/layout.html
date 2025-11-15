@@ -54,6 +54,31 @@
                         Admin
                     </a>
                 </li>
+
+                <!-- Employee Requests (visible to employees & managers) -->
+                <li class="nav-item" sec:authorize="hasAnyRole('EMPLOYEE','MANAGER')">
+                    <a class="nav-link"
+                       th:href="@{/employee/requests}"
+                       th:classappend="${(active=='employee-requests') or uri.startsWith('/employee/requests')} ? ' active' : ''">
+                        Requests
+                    </a>
+                </li>
+
+                <!-- Manager-only: My Requests (same forms, manager-owned), and Process queue -->
+                <li class="nav-item" sec:authorize="hasRole('MANAGER')">
+                    <a class="nav-link"
+                       th:href="@{/manager/requests}"
+                       th:classappend="${(active=='manager-requests') or uri.startsWith('/manager/requests') and !uri.endsWith('/process')} ? ' active' : ''">
+                        Manager Requests
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('MANAGER')">
+                    <a class="nav-link"
+                       th:href="@{/manager/requests/process}"
+                       th:classappend="${(active=='manager-process-requests') or uri.startsWith('/manager/requests/process')} ? ' active' : ''">
+                        Process
+                    </a>
+                </li>
             </ul>
 
             <div class="d-flex">

@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.format.annotation.DateTimeFormat;
+import com.resto.scheduler.service.RequestService;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -31,19 +32,22 @@ public class ManagerController {
   private final AvailabilityRepository availabilityRepo;
   private final SchedulePeriodRepository schedulePeriodRepo;
   private final AmendmentRepository amendmentRepo;
+  private final RequestService requestService;
 
   public ManagerController(AppUserRepository userRepo,
                            ShiftRepository shiftRepo,
                            AssignmentRepository assignmentRepo,
                            AvailabilityRepository availabilityRepo,
                            SchedulePeriodRepository schedulePeriodRepo,
-                           AmendmentRepository amendmentRepo) {
+                           AmendmentRepository amendmentRepo,
+                           RequestService requestService) {
     this.userRepo = userRepo;
     this.shiftRepo = shiftRepo;
     this.assignmentRepo = assignmentRepo;
     this.availabilityRepo = availabilityRepo;
     this.schedulePeriodRepo = schedulePeriodRepo;
     this.amendmentRepo = amendmentRepo;
+    this.requestService = requestService;
   }
 
   /** Normalize any date to the Monday of its week. */
@@ -67,25 +71,42 @@ public class ManagerController {
     // Anchor window to Monday (match Publish page behavior)
     LocalDate anchor = mondayOf(start != null ? start : LocalDate.now());
     LocalDate windowStart = anchor;
-    LocalDate windowEnd   = anchor.plusDays(13);
+    LocalDate windowEnd   = anchor.plusDays(13); // 14 days total
 
     List<LocalDate> days = new ArrayList<>(14);
-    for (int i = 0; i < 14; i++) days.add(windowStart.plusDays(i));
+    for (int i = 0; i < 14; i++) {
+      days.add(windowStart.plusDays(i));
+    }
 
     LocalDate prevStart = windowStart.minusDays(14);
     LocalDate nextStart = windowStart.plusDays(14);
 
-    var postedPeriods = schedulePeriodRepo.findPostedOverlapping(windowStart, windowEnd);
+    var postedPeriods      = schedulePeriodRepo.findPostedOverlapping(windowStart, windowEnd);
     var amendmentsInWindow = amendmentRepo.findByDateBetween(windowStart, windowEnd);
 
-    Set<LocalDate> postedDates = new HashSet<>();
+    Set<LocalDate> postedDates  = new HashSet<>();
     Set<LocalDate> amendedDates = new HashSet<>();
 
-    for (var a : amendmentsInWindow) amendedDates.add(a.getDate());
+    for (var a : amendmentsInWindow) {
+      amendedDates.add(a.getDate());
+    }
     for (var p : postedPeriods) {
       for (LocalDate d = p.getStartDate(); !d.isAfter(p.getEndDate()); d = d.plusDays(1)) {
-        if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) postedDates.add(d);
+        if (!d.isBefore(windowStart) && !d.isAfter(windowEnd)) {
+          postedDates.add(d);
+        }
       }
+    }
+
+    // 🔹 Raw LocalDate-keyed map from the service
+    Map<LocalDate, List<String>> rawTimeOff =
+            requestService.getApprovedTimeOffByDate(windowStart, windowEnd);
+
+    // 🔹 Convert to String-keyed map ("yyyy-MM-dd") for Thymeleaf
+    Map<String, List<String>> timeOffNamesByDate = new HashMap<>();
+    for (Map.Entry<LocalDate, List<String>> e : rawTimeOff.entrySet()) {
+      String key = e.getKey().toString(); // LocalDate -> "2026-01-31"
+      timeOffNamesByDate.put(key, e.getValue());
     }
 
     model.addAttribute("days", days);
@@ -96,8 +117,12 @@ public class ManagerController {
     model.addAttribute("postedDates", postedDates);
     model.addAttribute("amendedDates", amendedDates);
 
+    // 🔹 This is now Map<String, List<String>>
+    model.addAttribute("timeOffNamesByDate", timeOffNamesByDate);
+
     model.addAttribute("today", LocalDate.now());
     model.addAttribute("active", "manager-schedule");
+
     return "manager/schedule-builder";
   }
 
@@ -180,6 +205,13 @@ public class ManagerController {
       }
     });
 
+    // Remove users who have approved time off that day
+    availableLunchStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+    availableDinnerStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+    availLunchManagers.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+    allStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+    managers.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+
     // Amendments (for posted periods)
     Map<String, String> amended = new HashMap<>();
     var amps = amendmentRepo.findByDate(target);
@@ -211,6 +243,9 @@ public class ManagerController {
         amended.put(key, orig + " → " + now);
       }
     }
+
+    model.addAttribute("timeOffNamesForDay",
+            requestService.getApprovedTimeOffByDate(target, target).getOrDefault(target, java.util.List.of()));
 
     model.addAttribute("amended", amended);
     model.addAttribute("date", target);

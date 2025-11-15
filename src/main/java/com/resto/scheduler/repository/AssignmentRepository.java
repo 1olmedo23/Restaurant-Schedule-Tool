@@ -15,6 +15,8 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     Optional<Assignment> findByShift(Shift shift);
 
+    List<Assignment> findByEmployeeAndShift_Date(AppUser employee, LocalDate date);
+
     List<Assignment> findByShift_Date(LocalDate date);
 
     void deleteByShift_Date(LocalDate date);

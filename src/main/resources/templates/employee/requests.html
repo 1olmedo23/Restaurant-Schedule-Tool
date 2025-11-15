@@ -1,0 +1,96 @@
+<th:block th:with="active='employee-requests'" th:replace="~{layout :: base(~{::section})}">
+    <section>
+        <h1 class="h4 mb-3">My Requests</h1>
+        <div class="alert alert-danger" th:if="${param.error}" th:text="${param.error}"></div>
+        <div class="alert alert-success" th:if="${param.submitted}">Request submitted.</div>
+        <div class="alert alert-success" th:if="${param.trade_submitted}">Trade request submitted.</div>
+        <div class="alert alert-info" th:if="${param.confirmed}">Trade confirmed.</div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Request Time Off</div>
+                    <div class="card-body">
+                        <form method="post" th:action="@{/employee/requests/time-off}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="mb-2">
+                                <label class="form-label">Date</label>
+                                <input class="form-control" type="date" name="date" required />
+                            </div>
+                            <p class="text-muted small">If you are assigned that day, this will automatically become a trade request.</p>
+                            <button class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Request Trade</div>
+                    <div class="card-body">
+                        <form method="post" th:action="@{/employee/requests/trade}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="mb-2">
+                                <label class="form-label">Date (must be a day you’re assigned)</label>
+                                <input class="form-control" type="date" name="date" required />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Receiver</label>
+                                <select class="form-select" name="receiverId" required>
+                                    <option value="">— Select —</option>
+                                    <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.fullName + ' (' + e.username + ')'}"></option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4"/>
+
+        <h2 class="h5">My Requests (Newest first)</h2>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Status</th><th>Receiver</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${requests}">
+                    <td th:text="${r.id}">1</td>
+                    <td th:text="${r.type}">TIME_OFF</td>
+                    <td th:text="${r.requestDate}">2025-07-01</td>
+                    <td>
+        <span class="badge" th:classappend="${r.status.name()=='APPROVED'?'bg-success':(r.status.name()=='DENIED'?'bg-danger':'bg-secondary')}"
+              th:text="${r.status}">PENDING</span>
+                        <span class="badge bg-info ms-1" th:if="${r.type.name()=='TRADE' && r.receiverConfirmed}">Receiver Confirmed</span>
+                    </td>
+                    <td th:text="${r.receiver != null ? r.receiver.fullName : ''}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="h5 mt-4">Requests To Me</h2>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Requester</th><th>Actions</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${inbound}">
+                    <td th:text="${r.id}">1</td>
+                    <td th:text="${r.type}">TRADE</td>
+                    <td th:text="${r.requestDate}">2025-07-01</td>
+                    <td th:text="${r.requester.fullName}">Alice</td>
+                    <td>
+                        <form th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}" method="post"
+                              th:action="@{|/employee/requests/${r.id}/confirm|}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button class="btn btn-sm btn-outline-primary">Confirm (Receiver)</button>
+                        </form>
+                        <span th:if="${r.type.name()=='TRADE' && r.receiverConfirmed}" class="badge bg-success">Confirmed</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</th:block>
