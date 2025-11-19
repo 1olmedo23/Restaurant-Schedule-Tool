@@ -64,14 +64,6 @@
                     </a>
                 </li>
 
-                <!-- Manager-only: My Requests (same forms, manager-owned), and Process queue -->
-                <li class="nav-item" sec:authorize="hasRole('MANAGER')">
-                    <a class="nav-link"
-                       th:href="@{/manager/requests}"
-                       th:classappend="${(active=='manager-requests') or uri.startsWith('/manager/requests') and !uri.endsWith('/process')} ? ' active' : ''">
-                        Manager Requests
-                    </a>
-                </li>
                 <li class="nav-item" sec:authorize="hasRole('MANAGER')">
                     <a class="nav-link"
                        th:href="@{/manager/requests/process}"

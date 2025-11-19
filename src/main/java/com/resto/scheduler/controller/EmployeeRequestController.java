@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -75,6 +76,16 @@ public class EmployeeRequestController {
     public String confirmTrade(Authentication auth, @PathVariable Long id) {
         AppUser me = me(auth);
         Request r = requestRepo.findById(id).orElseThrow();
+        // Extra safety checks
+        if (r.getType() != com.resto.scheduler.model.enums.RequestType.TRADE) {
+            return "redirect:/employee/requests?error=Not%20a%20trade%20request.";
+        }
+        if (r.getReceiver() == null || !r.getReceiver().getId().equals(me.getId())) {
+            return "redirect:/employee/requests?error=You%20are%20not%20the%20receiver.";
+        }
+        if (r.getStatus() != com.resto.scheduler.model.enums.RequestStatus.PENDING) {
+            return "redirect:/employee/requests?error=Request%20is%20no%20longer%20pending.";
+        }
         requestService.receiverConfirm(r, me);
         return "redirect:/employee/requests?confirmed";
     }

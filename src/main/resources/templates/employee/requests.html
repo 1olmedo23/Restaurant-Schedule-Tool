@@ -50,43 +50,104 @@
 
         <hr class="my-4"/>
 
-        <h2 class="h5">My Requests (Newest first)</h2>
+        <h2 class="h5 mt-3">My Requests</h2>
+
         <div class="table-responsive">
             <table class="table table-sm align-middle">
-                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Status</th><th>Receiver</th></tr></thead>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Receiver</th>
+                    <th>Status</th>
+                    <th>Manager Note</th>
+                    <th>Receiver Status</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="r : ${requests}">
                     <td th:text="${r.id}">1</td>
-                    <td th:text="${r.type}">TIME_OFF</td>
+                    <td th:text="${r.type}">TRADE</td>
                     <td th:text="${r.requestDate}">2025-07-01</td>
-                    <td>
-        <span class="badge" th:classappend="${r.status.name()=='APPROVED'?'bg-success':(r.status.name()=='DENIED'?'bg-danger':'bg-secondary')}"
-              th:text="${r.status}">PENDING</span>
-                        <span class="badge bg-info ms-1" th:if="${r.type.name()=='TRADE' && r.receiverConfirmed}">Receiver Confirmed</span>
-                    </td>
+
+                    <!-- Receiver (for TIME_OFF this will usually be empty) -->
                     <td th:text="${r.receiver != null ? r.receiver.fullName : ''}"></td>
+
+                    <!-- STATUS badge -->
+                    <td>
+                <span class="badge"
+                      th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
+                                      (r.status.name() == 'DENIED' ? 'bg-danger' : 'bg-secondary')}">
+                    <span th:text="${r.status}">PENDING</span>
+                </span>
+                    </td>
+
+                    <!-- MANAGER NOTE -->
+                    <td th:text="${r.note}">Manager note here</td>
+
+                    <!-- Receiver confirmation (for trade only) -->
+                    <td>
+                <span th:if="${r.type.name() == 'TRADE'}"
+                      class="badge"
+                      th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
+                      th:text="${r.receiverConfirmed ? 'Receiver confirmed' : 'Waiting for receiver'}">
+                    Waiting for receiver
+                </span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
         <h2 class="h5 mt-4">Requests To Me</h2>
+
         <div class="table-responsive">
             <table class="table table-sm align-middle">
-                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Requester</th><th>Actions</th></tr></thead>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>From</th>
+                    <th>Status</th>
+                    <th>Manager Note</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="r : ${inbound}">
                     <td th:text="${r.id}">1</td>
                     <td th:text="${r.type}">TRADE</td>
                     <td th:text="${r.requestDate}">2025-07-01</td>
                     <td th:text="${r.requester.fullName}">Alice</td>
+
+                    <!-- STATUS + small receiver indicator -->
                     <td>
-                        <form th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}" method="post"
+                <span class="badge"
+                      th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
+                                      (r.status.name() == 'DENIED' ? 'bg-danger' : 'bg-secondary')}">
+                    <span th:text="${r.status}">PENDING</span>
+                </span>
+                        <span th:if="${r.type.name() == 'TRADE'}" class="ms-1 small">
+                    (<span th:text="${r.receiverConfirmed ? 'You confirmed' : 'Waiting for you'}"></span>)
+                </span>
+                    </td>
+
+                    <!-- MANAGER NOTE -->
+                    <td th:text="${r.note}">Manager note here</td>
+
+                    <!-- CONFIRM button: ONLY when it's a pending trade and you haven't confirmed yet -->
+                    <td>
+                        <form th:if="${r.type.name() == 'TRADE'
+                              && r.status.name() == 'PENDING'
+                              && !r.receiverConfirmed}"
+                              class="d-inline"
+                              method="post"
                               th:action="@{|/employee/requests/${r.id}/confirm|}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button class="btn btn-sm btn-outline-primary">Confirm (Receiver)</button>
+                            <button class="btn btn-sm btn-primary">Confirm</button>
                         </form>
-                        <span th:if="${r.type.name()=='TRADE' && r.receiverConfirmed}" class="badge bg-success">Confirmed</span>
                     </td>
                 </tr>
                 </tbody>

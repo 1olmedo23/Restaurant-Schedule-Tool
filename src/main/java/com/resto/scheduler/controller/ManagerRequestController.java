@@ -32,12 +32,9 @@ public class ManagerRequestController {
 
     /** Managers can also create requests for themselves (same UI as employee). */
     @GetMapping
-    public String requestsHome(Authentication auth, Model model) {
-        AppUser me = me(auth);
-        model.addAttribute("me", me);
-        model.addAttribute("requests", requestService.listForUser(me));
-        model.addAttribute("employees", userRepo.findAll());
-        return "manager/requests";
+    public String requestsHome() {
+        // Managers should use the shared Requests page
+        return "redirect:/employee/requests";
     }
 
     @PostMapping("/time-off")
@@ -85,12 +82,17 @@ public class ManagerRequestController {
     }
 
     @PostMapping("/{id}/approve")
-    public String approve(Authentication auth, @PathVariable Long id,
+    public String approve(Authentication auth,
+                          @PathVariable Long id,
                           @RequestParam(value = "note", required = false) String note,
-                          @RequestParam(value = "override", required = false, defaultValue = "false") boolean override,
+                          @RequestParam(value = "override", required = false) String overrideParam,
                           @RequestParam(value = "redirect", required = false, defaultValue = "process") String redirect) {
+
         AppUser mgr = me(auth);
         Request r = requestRepo.findById(id).orElseThrow();
+
+        // Any presence of "override" counts as true
+        boolean override = (overrideParam != null);
 
         if (r.getType() == com.resto.scheduler.model.enums.RequestType.TRADE
                 && !r.isReceiverConfirmed()

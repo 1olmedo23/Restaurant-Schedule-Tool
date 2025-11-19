@@ -29,19 +29,42 @@
                 th:text="${r.receiverConfirmed ? 'Confirmed' : 'Pending'}"></span>
                     </td>
                     <td>
+                        <!-- APPROVE form -->
                         <form class="d-inline" method="post" th:action="@{|/manager/requests/${r.id}/approve|}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <input class="form-control form-control-sm d-inline-block" style="width:220px" name="note" placeholder="Optional note"/>
-                            <button class="btn btn-sm btn-success ms-1">Approve</button>
+
+                            <input class="form-control form-control-sm d-inline-block"
+                                   style="width:220px"
+                                   name="note"
+                                   placeholder="Optional note"/>
+
+                            <button class="btn btn-sm btn-success ms-1">
+                                Approve
+                            </button>
+
+                            <!-- Override checkbox only for TRADE + receiver not yet confirmed -->
+                            <div class="form-check form-check-inline ms-1"
+                                 th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="override"
+                                       value="true"
+                                       th:id="'override_' + ${r.id}" />
+                                <label class="form-check-label small"
+                                       th:for="'override_' + ${r.id}">
+                                    Override
+                                </label>
+                            </div>
                         </form>
+
+                        <!-- DENY form (no override here) -->
                         <form class="d-inline ms-1" method="post" th:action="@{|/manager/requests/${r.id}/deny|}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <input class="form-control form-control-sm d-inline-block" style="width:220px" name="note" placeholder="Optional note"/>
+                            <input class="form-control form-control-sm d-inline-block"
+                                   style="width:220px"
+                                   name="note"
+                                   placeholder="Optional note"/>
                             <button class="btn btn-sm btn-outline-danger">Deny</button>
-                            <div class="form-check form-check-inline ms-1" th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}">
-                                <input class="form-check-input" type="checkbox" name="override" value="true" id="ovr__" />
-                                <label class="form-check-label small" for="ovr__">Override</label>
-                            </div>
                         </form>
                     </td>
                 </tr>
