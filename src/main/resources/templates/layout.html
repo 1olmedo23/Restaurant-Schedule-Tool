@@ -71,6 +71,19 @@
                         Process
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${active == 'notifications'} ? ' active' : ''"
+                       th:href="@{/notifications}">
+                        Notifications
+                        <span class="badge bg-danger ms-1"
+                              th:if="${notificationUnreadCount != null and notificationUnreadCount > 0}"
+                              th:text="${notificationUnreadCount}">
+                            3
+                        </span>
+                    </a>
+                </li>
             </ul>
 
             <div class="d-flex">
