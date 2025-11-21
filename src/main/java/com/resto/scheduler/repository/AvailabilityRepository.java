@@ -2,6 +2,7 @@ package com.resto.scheduler.repository;
 
 import com.resto.scheduler.model.AppUser;
 import com.resto.scheduler.model.Availability;
+import com.resto.scheduler.model.enums.RequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -14,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 public interface AvailabilityRepository extends JpaRepository<Availability, Long> {
   Optional<Availability> findByUserAndDayOfWeek(AppUser user, DayOfWeek day);
   List<Availability> findByUser(AppUser user);
+
+  List<Availability> findByStatus(RequestStatus status);
+  List<Availability> findByUserAndStatus(AppUser user, RequestStatus status);
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Transactional

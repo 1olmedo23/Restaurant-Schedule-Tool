@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.format.annotation.DateTimeFormat;
 import com.resto.scheduler.service.RequestService;
+import com.resto.scheduler.model.enums.RequestStatus;
+import com.resto.scheduler.model.Availability;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import org.springframework.security.core.Authentication;
 import java.util.*;
@@ -274,12 +277,117 @@ public class ManagerController {
       var opt = availabilityRepo.findByUserAndDayOfWeek(u, day);
       if (opt.isPresent()) {
         var a = opt.get();
-        boolean ok = (period == ShiftPeriod.LUNCH) ? a.isLunchAvailable() : a.isDinnerAvailable();
-        if (ok) out.add(u);
+
+        // Treat null (legacy rows) as APPROVED so existing data still works
+        RequestStatus status = a.getStatus();
+        if (status != null && status != RequestStatus.APPROVED) {
+          continue;
+        }
+
+        boolean ok = (period == ShiftPeriod.LUNCH)
+                ? a.isLunchAvailable()
+                : a.isDinnerAvailable();
+
+        if (ok) {
+          out.add(u);
+        }
       }
     }
     out.sort(Comparator.comparing(AppUser::getFullName));
     return out;
+  }
+
+  @GetMapping("/availability-requests")
+  public String availabilityRequests(Model model) {
+    // All rows that are currently pending
+    List<Availability> pending = availabilityRepo.findByStatus(RequestStatus.PENDING);
+
+    // Collect distinct users with pending rows
+    Map<Long, AppUser> userMap = new LinkedHashMap<>();
+    for (Availability a : pending) {
+      AppUser u = a.getUser();
+      if (u != null) {
+        userMap.putIfAbsent(u.getId(), u);
+      }
+    }
+
+    List<AppUser> pendingUsers = new ArrayList<>(userMap.values());
+    pendingUsers.sort(Comparator.comparing(AppUser::getFullName));
+
+    model.addAttribute("pendingUsers", pendingUsers);
+    model.addAttribute("active", "manager-availability");
+
+    return "manager/availability-requests";
+  }
+
+  @GetMapping("/availability/user/{userId}")
+  public String reviewAvailability(@PathVariable Long userId, Model model) {
+    AppUser user = userRepo.findById(userId).orElseThrow();
+
+    List<Availability> rows = availabilityRepo.findByUser(user);
+    rows.sort(Comparator.comparing(Availability::getDayOfWeek));
+
+    model.addAttribute("user", user);
+    model.addAttribute("rows", rows);
+    model.addAttribute("active", "manager-availability");
+
+    return "manager/availability-review";
+  }
+
+  @PostMapping("/availability/user/{userId}/approve")
+  public String approveAvailability(@PathVariable Long userId,
+                                    RedirectAttributes redirectAttributes) {
+
+    AppUser user = userRepo.findById(userId).orElseThrow();
+    List<Availability> rows = availabilityRepo.findByUser(user);
+    LocalDateTime now = LocalDateTime.now();
+
+    for (Availability a : rows) {
+      if (a.getStatus() == RequestStatus.PENDING) {
+        // Copy requested → approved, if present
+        Boolean reqLunch = a.getRequestedLunchAvailable();
+        Boolean reqDinner = a.getRequestedDinnerAvailable();
+
+        if (reqLunch != null) {
+          a.setLunchAvailable(reqLunch);
+        }
+        if (reqDinner != null) {
+          a.setDinnerAvailable(reqDinner);
+        }
+
+        a.setStatus(RequestStatus.APPROVED);
+        a.setDecidedAt(now);
+        availabilityRepo.save(a);
+      }
+    }
+
+    redirectAttributes.addFlashAttribute("message",
+            "Availability approved for " + user.getFullName());
+
+    return "redirect:/employee/availability";
+  }
+
+  @PostMapping("/availability/user/{userId}/deny")
+  public String denyAvailability(@PathVariable Long userId,
+                                 RedirectAttributes redirectAttributes) {
+
+    AppUser user = userRepo.findById(userId).orElseThrow();
+    List<Availability> rows = availabilityRepo.findByUser(user);
+    LocalDateTime now = LocalDateTime.now();
+
+    for (Availability a : rows) {
+      if (a.getStatus() == RequestStatus.PENDING) {
+        // Do NOT change approved values; just mark as denied
+        a.setStatus(RequestStatus.DENIED);
+        a.setDecidedAt(now);
+        availabilityRepo.save(a);
+      }
+    }
+
+    redirectAttributes.addFlashAttribute("message",
+            "Availability denied for " + user.getFullName());
+
+    return "redirect:/employee/availability";
   }
 
   @PostMapping("/schedule/{date}")

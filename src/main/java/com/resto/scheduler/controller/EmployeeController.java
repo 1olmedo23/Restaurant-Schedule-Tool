@@ -15,6 +15,7 @@ import com.resto.scheduler.service.ScheduleViewService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.resto.scheduler.model.enums.RequestStatus;
 
 import java.security.Principal;
 import java.time.DayOfWeek;
@@ -55,17 +56,83 @@ public class EmployeeController {
 
     AppUser user = userRepo.findByUsername(principal.getName()).orElseThrow();
 
+    List<Availability> rows = availabilityRepo.findByUser(user);
+
     Map<String, Map<String, Boolean>> availMap = new HashMap<>();
-    availabilityRepo.findByUser(user).forEach(a -> {
-      Map<String,Boolean> m = new HashMap<>();
-      m.put("lunch", a.isLunchAvailable());
-      m.put("dinner", a.isDinnerAvailable());
+
+    boolean hasPending = false;
+    boolean hasDenied  = false;
+
+    for (Availability a : rows) {
+      Map<String, Boolean> m = new HashMap<>();
+
+      boolean lunch = (a.getRequestedLunchAvailable() != null)
+              ? a.getRequestedLunchAvailable()
+              : a.isLunchAvailable();
+
+      boolean dinner = (a.getRequestedDinnerAvailable() != null)
+              ? a.getRequestedDinnerAvailable()
+              : a.isDinnerAvailable();
+
+      m.put("lunch", lunch);
+      m.put("dinner", dinner);
       availMap.put(a.getDayOfWeek().name(), m);
-    });
+
+      RequestStatus st = a.getStatus();
+      if (st == RequestStatus.PENDING) {
+        hasPending = true;
+      } else if (st == RequestStatus.DENIED) {
+        hasDenied = true;
+      }
+    }
+
+    String availabilityStatus;
+    if (hasPending) {
+      availabilityStatus = "PENDING";
+    } else if (hasDenied) {
+      availabilityStatus = "DENIED";
+    } else {
+      // All rows either APPROVED or null (legacy) or employee has no rows yet
+      availabilityStatus = "APPROVED";
+    }
+
+    // === Manager-only: pending availability requests from other users ===
+    boolean isManager = user.getRoles().stream().anyMatch(r -> "MANAGER".equals(r.getName()));
+    List<AppUser> pendingUsers = new ArrayList<>();
+    Map<Long, Map<String, Availability>> pendingAvailabilities = new HashMap<>();
+
+    if (isManager) {
+      List<Availability> pending = availabilityRepo.findByStatus(RequestStatus.PENDING);
+
+      Map<Long, AppUser> userMap = new LinkedHashMap<>();
+
+      for (Availability a : pending) {
+        AppUser u2 = a.getUser();
+        if (u2 == null) continue;
+
+        userMap.putIfAbsent(u2.getId(), u2);
+
+        Map<String, Availability> byDay =
+                pendingAvailabilities.computeIfAbsent(u2.getId(), k -> new HashMap<>());
+
+        if (a.getDayOfWeek() != null) {
+          byDay.put(a.getDayOfWeek().name(), a);
+        }
+      }
+
+      pendingUsers = new ArrayList<>(userMap.values());
+      pendingUsers.sort(Comparator.comparing(AppUser::getFullName));
+    }
 
     model.addAttribute("active", "employee-availability");
     model.addAttribute("weekdays", weekdays);
     model.addAttribute("avail", availMap);
+    model.addAttribute("availabilityStatus", availabilityStatus);
+
+    // Manager extras
+    model.addAttribute("pendingUsers", pendingUsers);
+    model.addAttribute("pendingAvailabilities", pendingAvailabilities);
+
     return "employee/availability";
   }
 
@@ -82,10 +149,23 @@ public class EmployeeController {
       Availability a = availabilityRepo.findByUserAndDayOfWeek(user, d).orElseGet(Availability::new);
       a.setUser(user);
       a.setDayOfWeek(d);
-      a.setLunchAvailable(lunch);
-      a.setDinnerAvailable(dinner);
+
+      // Requested values (what user is asking for)
+      a.setRequestedLunchAvailable(lunch);
+      a.setRequestedDinnerAvailable(dinner);
+
+      // Mark as pending every time they save
+      a.setStatus(RequestStatus.PENDING);
+      a.setSubmittedAt(java.time.LocalDateTime.now());
+      a.setDecidedAt(null); // reset previous decision
+
+      // do not touch lunchAvailable/dinnerAvailable here.
+      // Those will be updated when a manager approves the request.
+
       availabilityRepo.save(a);
     }
+
+    // For now we keep the same query flag; later we can show a nicer "pending" message in the template.
     return "redirect:/employee/availability?saved";
   }
 
