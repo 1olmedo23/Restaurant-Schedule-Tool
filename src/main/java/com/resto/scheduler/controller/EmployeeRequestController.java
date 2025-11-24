@@ -38,6 +38,7 @@ public class EmployeeRequestController {
         model.addAttribute("requests", requestService.listForUser(me));               // my outbound
         model.addAttribute("inbound", requestRepo.findByReceiverOrderByCreatedAtDesc(me)); // to-me
         model.addAttribute("employees", userRepo.findAll());
+        model.addAttribute("active", "employee-requests");
         return "employee/requests";
     }
 

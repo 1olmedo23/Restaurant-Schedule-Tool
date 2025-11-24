@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
-      th:fragment="base(content)"
-      th:with="uri=${#httpServletRequest != null ? #httpServletRequest.requestURI : ''}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      th:fragment="base(content)">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -12,7 +12,16 @@
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/}">Resto Scheduler</a>
+
+        <!-- Brand: static when logged in, clickable when logged out -->
+        <span class="navbar-brand" sec:authorize="isAuthenticated()">
+            Resto Scheduler
+        </span>
+        <a class="navbar-brand"
+           th:href="@{/}"
+           sec:authorize="!isAuthenticated()">
+            Resto Scheduler
+        </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample">
             <span class="navbar-toggler-icon"></span>
@@ -20,62 +29,78 @@
 
         <div class="collapse navbar-collapse" id="navbarsExample">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <!-- My Schedule -->
                 <li class="nav-item" sec:authorize="hasAnyRole('EMPLOYEE','MANAGER')">
-                    <a class="nav-link" th:href="@{/employee/schedule}"
-                       th:classappend="${(active=='employee-schedule') or uri.startsWith('/employee/schedule')} ? ' active' : ''">
+                    <a class="nav-link"
+                       th:href="@{/employee/schedule}"
+                       th:classappend="${active == 'employee-schedule'} ? ' active' : ''">
                         My Schedule
                     </a>
                 </li>
 
+                <!-- My Availability -->
                 <li class="nav-item" sec:authorize="hasAnyRole('EMPLOYEE','MANAGER')">
-                    <a class="nav-link" th:href="@{/employee/availability}"
-                       th:classappend="${(active=='employee-availability') or uri.startsWith('/employee/availability')} ? ' active' : ''">
+                    <a class="nav-link"
+                       th:href="@{/employee/availability}"
+                       th:classappend="${active == 'employee-availability'} ? ' active' : ''">
                         My Availability
                     </a>
                 </li>
 
+                <!-- Schedule Builder (manager) -->
                 <li class="nav-item" sec:authorize="hasRole('MANAGER')">
-                    <a class="nav-link" th:href="@{/manager/schedule-builder}"
-                       th:classappend="${(active=='manager-schedule') or uri.startsWith('/manager/schedule')} ? ' active' : ''">
+                    <a class="nav-link"
+                       th:href="@{/manager/schedule-builder}"
+                       th:classappend="${active == 'manager-schedule'} ? ' active' : ''">
                         Schedule Builder
                     </a>
                 </li>
 
+                <!-- Publish (manager) -->
                 <li class="nav-item" sec:authorize="hasRole('MANAGER')">
-                    <a class="nav-link" th:href="@{/manager/publish}"
-                       th:classappend="${(active=='manager-publish') or uri.startsWith('/manager/publish')} ? ' active' : ''">
+                    <a class="nav-link"
+                       th:href="@{/manager/publish}"
+                       th:classappend="${active == 'manager-publish'} ? ' active' : ''">
                         Publish
                     </a>
                 </li>
 
+                <!-- Admin (manager) -->
                 <li class="nav-item" sec:authorize="hasRole('MANAGER')">
-                    <a class="nav-link" th:href="@{/admin/users}"
-                       th:classappend="${(active=='admin-users') or uri.startsWith('/admin/users')} ? ' active' : ''">
+                    <a class="nav-link"
+                       th:href="@{/admin/users}"
+                       th:classappend="${active == 'admin-users'} ? ' active' : ''">
                         Admin
                     </a>
                 </li>
 
-                <!-- Employee Requests (visible to employees & managers) -->
+                <!-- Requests (employee + manager)
+                     employee/requests.html  => active='employee-requests'
+                     manager/requests.html   => active='manager-requests'
+                -->
                 <li class="nav-item" sec:authorize="hasAnyRole('EMPLOYEE','MANAGER')">
                     <a class="nav-link"
                        th:href="@{/employee/requests}"
-                       th:classappend="${(active=='employee-requests') or uri.startsWith('/employee/requests')} ? ' active' : ''">
+                       th:classappend="${active == 'employee-requests' or active == 'manager-requests'} ? ' active' : ''">
                         Requests
                     </a>
                 </li>
 
+                <!-- Process (manager) -->
                 <li class="nav-item" sec:authorize="hasRole('MANAGER')">
                     <a class="nav-link"
                        th:href="@{/manager/requests/process}"
-                       th:classappend="${(active=='manager-process-requests') or uri.startsWith('/manager/requests/process')} ? ' active' : ''">
+                       th:classappend="${active == 'manager-process-requests'} ? ' active' : ''">
                         Process
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <!-- Notifications (only when logged in) -->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link"
-                       th:classappend="${active == 'notifications'} ? ' active' : ''"
-                       th:href="@{/notifications}">
+                       th:href="@{/notifications}"
+                       th:classappend="${active == 'notifications'} ? ' active' : ''">
                         Notifications
                         <span class="badge bg-danger ms-1"
                               th:if="${notificationUnreadCount != null and notificationUnreadCount > 0}"
@@ -87,10 +112,16 @@
             </ul>
 
             <div class="d-flex">
-                <form th:if="${#authorization.expr('isAuthenticated()')}" th:action="@{/logout}" method="post">
+                <form th:if="${#authorization.expr('isAuthenticated()')}"
+                      th:action="@{/logout}"
+                      method="post">
                     <button class="btn btn-outline-light" type="submit">Logout</button>
                 </form>
-                <a th:if="${#authorization.expr('!isAuthenticated()')}" class="btn btn-outline-light" th:href="@{/login}">Login</a>
+                <a th:if="${#authorization.expr('!isAuthenticated()')}"
+                   class="btn btn-outline-light"
+                   th:href="@{/login}">
+                    Login
+                </a>
             </div>
         </div>
     </div>

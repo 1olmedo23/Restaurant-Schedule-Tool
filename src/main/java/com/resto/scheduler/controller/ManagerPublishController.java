@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Controller
@@ -57,14 +58,24 @@ public class ManagerPublishController {
             LocalDate start,
             Model model
     ) {
-        LocalDate baseStart = (start != null)
-                ? scheduleView.mondayOf(start)
-                : scheduleView.mondayOf(LocalDate.now());
+        // 1) Anchor date: either requested start (for navigation) or today
+        LocalDate anchor = (start != null) ? start : LocalDate.now();
+
+        // 2) Try to find a POSTED period that CONTAINS the anchor date
+        LocalDate baseStart;
+        var spOpt = schedulePeriods.findPostedContaining(anchor);
+
+        if (spOpt.isPresent()) {
+            // Use the real posted period boundaries
+            SchedulePeriod sp = spOpt.get();
+            baseStart = sp.getStartDate();
+        } else {
+            // No posted period contains anchor → fall back to Monday-of-anchor
+            baseStart = scheduleView.mondayOf(anchor);
+            spOpt = schedulePeriods.findByStartDate(baseStart);
+        }
 
         LocalDate endInclusive = baseStart.plusDays(13);
-
-        // Period if exists (no creation on GET)
-        var spOpt = schedulePeriods.findByStartDate(baseStart);
 
         // Week lists
         List<LocalDate> week1 = new ArrayList<>(7);
@@ -125,9 +136,18 @@ public class ManagerPublishController {
             }
         }
 
-        String banner = isPosted
-                ? "2-week period: " + spOpt.get().getStartDate() + " to " + spOpt.get().getEndDate() + " — Status: POSTED"
-                : "2-week period: " + baseStart + " to " + endInclusive + " — Status: DRAFT";
+        DateTimeFormatter bannerFormatter = DateTimeFormatter.ofPattern("MM-dd-yy");
+
+        String banner;
+        if (isPosted && spOpt.isPresent()) {
+            LocalDate s = spOpt.get().getStartDate();
+            LocalDate e = spOpt.get().getEndDate();
+            String range = s.format(bannerFormatter) + " to " + e.format(bannerFormatter);
+            banner = "2-week period: " + range + " — Status: POSTED";
+        } else {
+            String range = baseStart.format(bannerFormatter) + " to " + endInclusive.format(bannerFormatter);
+            banner = "2-week period: " + range + " — Status: DRAFT";
+        }
 
         model.addAttribute("banner", banner);
         model.addAttribute("period", spOpt.orElse(null));

@@ -209,11 +209,11 @@ public class ManagerController {
     });
 
     // Remove users who have approved time off that day
+    // The override lists (allStaff, allManagers) should still show them.
     availableLunchStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
     availableDinnerStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
     availLunchManagers.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
-    allStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
-    managers.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
+// Do NOT filter allStaff / managers by time off, so override can assign them.
 
     // Amendments (for posted periods)
     Map<String, String> amended = new HashMap<>();

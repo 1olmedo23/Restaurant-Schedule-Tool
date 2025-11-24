@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,9 @@ public class RequestService {
     // for “open” checks if you want later
     private static final List<RequestStatus> OPEN_STATUSES =
             List.of(RequestStatus.PENDING);
+
+    private static final DateTimeFormatter REQ_DATE_FMT =
+            DateTimeFormatter.ofPattern("MM-dd-yy");
 
     public RequestService(RequestRepository requestRepo,
                           AssignmentRepository assignmentRepo,
@@ -65,7 +69,7 @@ public class RequestService {
         // Already scheduled that day → this must be a trade
         if (receiverUsername == null || receiverUsername.isBlank()) {
             // Controller catches this and shows the "please request a trade" banner
-            throw new IllegalArgumentException("Receiver is required when requesting a trade for an assigned day.");
+            throw new IllegalArgumentException("You have been assigned for this date, submit a trade request.");
         }
 
         AppUser receiver = userRepo.findByUsername(receiverUsername)
@@ -145,10 +149,12 @@ public class RequestService {
         r.setCreatedAt(Instant.now());
         r = requestRepo.save(r);
 
+        String dateStr = REQ_DATE_FMT.format(date);
+
         notify(receiver, NotificationType.TRADE_INVITE,
-                "Trade request from " + requester.getFullName() + " for " + date + " (request #" + r.getId() + ")");
+                "Trade request from " + requester.getFullName() + " for " + dateStr + " (request #" + r.getId() + ")");
         notify(requester, NotificationType.REQ_CREATED,
-                "Trade request submitted for " + date + " (request #" + r.getId() + ")");
+                "Trade request submitted for " + dateStr + " (request #" + r.getId() + ")");
         return r;
     }
 
@@ -161,8 +167,10 @@ public class RequestService {
         r.setCreatedAt(Instant.now());
         r = requestRepo.save(r);
 
+        String dateStr = REQ_DATE_FMT.format(date);
+
         notify(requester, NotificationType.REQ_CREATED,
-                "Time off request submitted for " + date + " (request #" + r.getId() + ")");
+                "Time off request submitted for " + dateStr + " (request #" + r.getId() + ")");
         return r;
     }
 
@@ -178,8 +186,10 @@ public class RequestService {
         request.setReceiverConfirmedAt(Instant.now());
         Request saved = requestRepo.save(request);
 
+        String dateStr = REQ_DATE_FMT.format(request.getRequestDate());
+
         notify(request.getRequester(), NotificationType.REQ_UPDATED,
-                "Your trade request for " + request.getRequestDate() + " was confirmed by " + receiver.getFullName());
+                "Your trade request for " + dateStr + " was confirmed by " + receiver.getFullName());
         return saved;
     }
 
@@ -226,8 +236,9 @@ public class RequestService {
     }
 
     private String label(Request r) {
+        String dateStr = REQ_DATE_FMT.format(r.getRequestDate());
         return (r.getType() == RequestType.TRADE ? "Trade request" : "Time off request")
-                + " for " + r.getRequestDate();
+                + " for " + dateStr;
     }
 
     /**

@@ -30,9 +30,9 @@
     </span>
         </div>
 
-        <div th:if="${locked}" class="alert alert-warning mt-3">
+        <div th:if="${locked}" class="alert alert-warning mt-3 text-center">
             This date is in a <strong>POSTED</strong> period. Normal saving is disabled.
-            Use <strong>“Save (Edit anyway)”</strong> or <strong>“Clear (Edit anyway)”</strong> to record changes as amendments.
+            Use <strong>“Save (Edit)”</strong> or <strong>“Clear (Edit)”</strong> to record changes.
         </div>
 
         <div th:if="${param.saved}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
@@ -186,11 +186,11 @@
                 <button type="submit" class="btn btn-warning"
                         name="action" value="save"
                         onclick="document.getElementById('override').value='1'">
-                    Save (Edit anyway)
+                    Save (Edit)
                 </button>
                 <button class="btn btn-outline-danger" type="submit" name="action" value="clear"
                         onclick="document.getElementById('override').value='1'; return confirm('Clear all assignments for this date?')">
-                    Clear (Edit anyway)
+                    Clear (Edit)
                 </button>
             </div>
         </form>

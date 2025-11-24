@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <div class="alert mt-3"
+        <div class="alert mt-3 text-center"
              th:classappend="${isPosted} ? 'alert-success' : 'alert-secondary'"
              th:text="${banner}">
             Period status
@@ -38,13 +38,13 @@
             <form th:if="${isPosted}" method="post" th:action="@{/manager/publish/republish}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <input type="hidden" name="start" th:value="${period.startDate}"/>
-                <button class="btn btn-warning" th:disabled="${!needsRepublish}">Republish Snapshot</button>
+                <button class="btn btn-warning" th:disabled="${!needsRepublish}">Republish Schedule</button>
             </form>
         </div>
 
         <div class="mt-3">
             <div class="alert alert-success" th:if="${param.posted}">Schedule posted.</div>
-            <div class="alert alert-success" th:if="${param.republished == '1'}">Snapshot republished.</div>
+            <div class="alert alert-success" th:if="${param.republished == '1'}">Schedule republished.</div>
             <div class="alert alert-secondary" th:if="${param.republished == '0'}">Nothing to republish for this period.</div>
         </div>
     </section>

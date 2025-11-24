@@ -179,12 +179,28 @@ public class EmployeeController {
   ) {
     model.addAttribute("active", "employee-schedule");
 
-    // Determine target 2-week block (Monday anchor)
-    LocalDate baseStart = (start != null)
-            ? scheduleViewService.mondayOf(start)
-            : scheduleViewService.mondayOf(LocalDate.now());
+    // Anchor date: either the requested start (for navigation) or today
+    LocalDate anchor = (start != null) ? start : LocalDate.now();
 
-    LocalDate periodStart  = baseStart;
+    // 1) Try to find a POSTED period that CONTAINS the anchor date
+    LocalDate periodStart;
+    boolean isPosted;
+
+    var spOpt = schedulePeriodRepo.findPostedContaining(anchor);
+    if (spOpt.isPresent()) {
+      SchedulePeriod sp = spOpt.get();
+      periodStart = sp.getStartDate(); // use the real period start
+      isPosted = "POSTED".equalsIgnoreCase(sp.getStatus());
+    } else {
+      // 2) No posted period contains this date:
+      //    fall back to a generic 2-week window anchored on Monday,
+      //    and check if THAT window happens to be a posted period.
+      periodStart = scheduleViewService.mondayOf(anchor);
+      isPosted = schedulePeriodRepo.findByStartDate(periodStart)
+              .map(sp -> "POSTED".equalsIgnoreCase(sp.getStatus()))
+              .orElse(false);
+    }
+
     LocalDate week2Start   = periodStart.plusWeeks(1);
     LocalDate endInclusive = week2Start.plusDays(6);
 
@@ -193,11 +209,6 @@ public class EmployeeController {
     List<LocalDate> week2 = new ArrayList<>(7);
     for (int i = 0; i < 7; i++) week1.add(periodStart.plusDays(i));
     for (int i = 0; i < 7; i++) week2.add(week2Start.plusDays(i));
-
-    // Is THIS window a POSTED period?
-    boolean isPosted = schedulePeriodRepo.findByStartDate(periodStart)
-            .map(sp -> "POSTED".equalsIgnoreCase(sp.getStatus()))
-            .orElse(false);
 
     boolean anyPosted = scheduleViewService.latestPostedStart().isPresent();
 
@@ -222,11 +233,13 @@ public class EmployeeController {
         String dateKey = pa.getDate().toString(); // yyyy-MM-dd
         String roleKey = pa.getPeriod().name() + "_" + pa.getPosition().name();
 
-        assignmentsGrid.computeIfAbsent(dateKey, k -> new HashMap<>()).put(roleKey, a);
+        assignmentsGrid
+                .computeIfAbsent(dateKey, k -> new HashMap<>())
+                .put(roleKey, a);
       }
     }
 
-    // Prev/Next: step 14 days
+    // Prev/Next: step 14 days based on the displayed period start
     LocalDate prevStart = periodStart.minusDays(14);
     LocalDate nextStart = periodStart.plusDays(14);
 

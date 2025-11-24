@@ -20,9 +20,9 @@
                         My Schedule <span th:if="${isPosted}">(Posted)</span>
                     </h1>
                     <div class="text-muted small">
-                        <strong th:text="${#temporals.format(startDate, 'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                        <strong th:text="${#temporals.format(startDate, 'MM-dd-yy')}">MM-DD-YY</strong>
                         &nbsp;→&nbsp;
-                        <strong th:text="${#temporals.format(endDate, 'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                        <strong th:text="${#temporals.format(endDate, 'MM-dd-yy')}">MM-DD-YY</strong>
                     </div>
                 </div>
 

@@ -19,16 +19,24 @@
                 <table class="table table-sm align-middle">
                     <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Type</th>
+                        <th>Date</th>
                         <th>Message</th>
                         <th style="width: 150px;">Action</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="n : ${unread}">
-                        <td th:text="${n.id}">1</td>
-                        <td th:text="${n.type}">TRADE_INVITE</td>
+                        <!-- Friendly type: "TRADE_INVITE" -> "Trade invite" -->
+                        <td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
+                            Type
+                        </td>
+
+                        <!-- Date as MM-DD-YY (swap n.createdAt if your field name differs) -->
+                        <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">
+                            11-21-25
+                        </td>
+
                         <td th:text="${n.payload}">Notification text</td>
                         <td>
                             <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
@@ -52,15 +60,23 @@
             <table class="table table-sm align-middle">
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Type</th>
+                    <th>Date</th>
                     <th>Message</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="n : ${read}">
-                    <td th:text="${n.id}">1</td>
-                    <td th:text="${n.type}">TRADE_INVITE</td>
+                    <!-- Friendly type -->
+                    <td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
+                        Type
+                    </td>
+
+                    <!-- Date as MM-DD-YY -->
+                    <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">
+                        11-21-25
+                    </td>
+
                     <td th:text="${n.payload}">Notification text</td>
                 </tr>
                 </tbody>

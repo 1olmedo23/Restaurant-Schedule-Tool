@@ -15,19 +15,40 @@
 
         <div class="table-responsive">
             <table class="table table-sm align-middle">
-                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Requester</th><th>Receiver</th><th>Receiver OK?</th><th>Decide</th></tr></thead>
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Requester</th>
+                    <th>Receiver</th>
+                    <th>Receiver OK?</th>
+                    <th>Decide</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="r : ${pending}">
-                    <td th:text="${r.id}">1</td>
-                    <td th:text="${r.type}">TRADE</td>
-                    <td th:text="${r.requestDate}">2025-07-01</td>
+                    <!-- Friendly type -->
+                    <td th:text="${r.type.name() == 'TIME_OFF' ? 'Time Off' :
+                         (r.type.name() == 'TRADE' ? 'Trade' : r.type.name())}">
+                        Type
+                    </td>
+
+                    <!-- Date as MM-DD-YY -->
+                    <td th:text="${#temporals.format(r.requestDate, 'MM-dd-yy')}">
+                        11-21-25
+                    </td>
+
                     <td th:text="${r.requester.fullName}">Alice</td>
                     <td th:text="${r.receiver != null ? r.receiver.fullName : ''}"></td>
+
                     <td>
-          <span th:if="${r.type.name()=='TRADE'}" class="badge"
-                th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
-                th:text="${r.receiverConfirmed ? 'Confirmed' : 'Pending'}"></span>
+                <span th:if="${r.type.name()=='TRADE'}" class="badge"
+                      th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
+                      th:text="${r.receiverConfirmed ? 'Confirmed' : 'Pending'}">
+                    Pending
+                </span>
                     </td>
+
                     <td>
                         <!-- APPROVE form -->
                         <form class="d-inline" method="post" th:action="@{|/manager/requests/${r.id}/approve|}">

@@ -19,6 +19,8 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     List<Assignment> findByShift_Date(LocalDate date);
 
+    @Transactional
+    @Modifying
     void deleteByShift_Date(LocalDate date);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)

@@ -72,12 +72,13 @@ public class ManagerRequestController {
     public String processQueue(@RequestParam(value = "start", required = false) String startStr,
                                @RequestParam(value = "end", required = false) String endStr,
                                Model model) {
-        LocalDate start = (startStr != null ? LocalDate.parse(startStr) : LocalDate.now().minusYears(1));
+        LocalDate start = (startStr != null ? LocalDate.parse(startStr) : LocalDate.now());
         LocalDate end   = (endStr != null ? LocalDate.parse(endStr) : LocalDate.now().plusYears(1));
         List<Request> pending = requestService.listPending(start, end);
         model.addAttribute("pending", pending);
         model.addAttribute("start", start);
         model.addAttribute("end", end);
+        model.addAttribute("active", "manager-process-requests");
         return "manager/process";
     }
 

@@ -8,9 +8,9 @@
             <div class="text-center flex-grow-1">
                 <h1 class="h4 mb-0">Schedule Builder (2 Weeks)</h1>
                 <div class="text-muted small">
-                    <strong th:text="${#temporals.format(windowStart,'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                    <strong th:text="${#temporals.format(windowStart,'MM/dd/yy')}">MM/DD/YY</strong>
                     &nbsp;→&nbsp;
-                    <strong th:text="${#temporals.format(windowEnd,'yyyy-MM-dd')}">YYYY-MM-DD</strong>
+                    <strong th:text="${#temporals.format(windowEnd,'MM/dd/yy')}">MM/DD/YY</strong>
                 </div>
             </div>
 
@@ -38,7 +38,7 @@
                         <h5 class="card-title mb-1" th:text="${#temporals.format(d,'EEEE')}">Day</h5>
                         <div class="small text-muted" th:text="${#temporals.format(d,'MM/dd')}">00/00</div>
 
-                        <!-- 🔹 Approved time-off badges on the grid cards -->
+                        <!-- Approved time-off badges on the grid cards -->
                         <div class="mt-2"
                              th:if="${timeOffNamesByDate != null
                              and #maps.containsKey(timeOffNamesByDate,

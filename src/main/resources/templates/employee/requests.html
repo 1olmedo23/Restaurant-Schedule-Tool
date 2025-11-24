@@ -17,7 +17,8 @@
                                 <label class="form-label">Date</label>
                                 <input class="form-control" type="date" name="date" required />
                             </div>
-                            <p class="text-muted small">If you are assigned that day, this will automatically become a trade request.</p>
+                            <p class="text-muted small">Time off request is only available for non scheduled days.<br>
+                            Submit a trade request if you are already scheduled.</p>
                             <button class="btn btn-primary">Submit</button>
                         </form>
                     </div>
@@ -56,7 +57,6 @@
             <table class="table table-sm align-middle">
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Type</th>
                     <th>Date</th>
                     <th>Receiver</th>
@@ -67,9 +67,16 @@
                 </thead>
                 <tbody>
                 <tr th:each="r : ${requests}">
-                    <td th:text="${r.id}">1</td>
-                    <td th:text="${r.type}">TRADE</td>
-                    <td th:text="${r.requestDate}">2025-07-01</td>
+                    <!-- Friendly type -->
+                    <td th:text="${r.type.name() == 'TIME_OFF' ? 'Time Off' :
+                         (r.type.name() == 'TRADE' ? 'Trade' : r.type.name())}">
+                        Type
+                    </td>
+
+                    <!-- Date as MM-DD-YY -->
+                    <td th:text="${#temporals.format(r.requestDate, 'MM-dd-yy')}">
+                        11-21-25
+                    </td>
 
                     <!-- Receiver (for TIME_OFF this will usually be empty) -->
                     <td th:text="${r.receiver != null ? r.receiver.fullName : ''}"></td>
@@ -106,7 +113,6 @@
             <table class="table table-sm align-middle">
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Type</th>
                     <th>Date</th>
                     <th>From</th>
@@ -117,9 +123,17 @@
                 </thead>
                 <tbody>
                 <tr th:each="r : ${inbound}">
-                    <td th:text="${r.id}">1</td>
-                    <td th:text="${r.type}">TRADE</td>
-                    <td th:text="${r.requestDate}">2025-07-01</td>
+                    <!-- Friendly type -->
+                    <td th:text="${r.type.name() == 'TIME_OFF' ? 'Time Off' :
+                         (r.type.name() == 'TRADE' ? 'Trade' : r.type.name())}">
+                        Type
+                    </td>
+
+                    <!-- Date as MM-DD-YY -->
+                    <td th:text="${#temporals.format(r.requestDate, 'MM-dd-yy')}">
+                        11-21-25
+                    </td>
+
                     <td th:text="${r.requester.fullName}">Alice</td>
 
                     <!-- STATUS + small receiver indicator -->
