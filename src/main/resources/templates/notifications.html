@@ -19,7 +19,7 @@
                 <table class="table table-sm align-middle">
                     <thead>
                     <tr>
-                        <th>Type</th>
+                        <!--<th>Type</th>-->
                         <th>Date</th>
                         <th>Message</th>
                         <th style="width: 150px;">Action</th>
@@ -28,9 +28,9 @@
                     <tbody>
                     <tr th:each="n : ${unread}">
                         <!-- Friendly type: "TRADE_INVITE" -> "Trade invite" -->
-                        <td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
+                        <!--<td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
                             Type
-                        </td>
+                        </td>-->
 
                         <!-- Date as MM-DD-YY (swap n.createdAt if your field name differs) -->
                         <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">
@@ -60,7 +60,7 @@
             <table class="table table-sm align-middle">
                 <thead>
                 <tr>
-                    <th>Type</th>
+                    <!--<th>Type</th>-->
                     <th>Date</th>
                     <th>Message</th>
                 </tr>
@@ -68,9 +68,9 @@
                 <tbody>
                 <tr th:each="n : ${read}">
                     <!-- Friendly type -->
-                    <td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
+                    <!--<td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
                         Type
-                    </td>
+                    </td>-->
 
                     <!-- Date as MM-DD-YY -->
                     <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">

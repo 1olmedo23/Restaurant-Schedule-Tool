@@ -7,6 +7,7 @@ import com.resto.scheduler.model.enums.RequestType;
 import com.resto.scheduler.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import com.resto.scheduler.model.enums.ShiftPeriod;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -95,22 +96,34 @@ public class RequestService {
      * Explicit trade request (the "Request Trade" button).
      */
     @Transactional
-    public Request createTrade(AppUser requester, LocalDate date, String receiverUsername) {
+    public Request createTrade(AppUser requester,
+                               LocalDate date,
+                               ShiftPeriod period,
+                               String receiverUsername) {
         if (receiverUsername == null || receiverUsername.isBlank()) {
             throw new IllegalArgumentException("Receiver is required for trade request.");
+        }
+        if (period == null) {
+            throw new IllegalArgumentException("Shift period (LUNCH or DINNER) is required for trade request.");
         }
 
         AppUser receiver = userRepo.findByUsername(receiverUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found."));
 
+        // All assignments for that day
         List<Assignment> assignments = assignmentRepo.findByEmployeeAndShift_Date(requester, date);
 
         if (assignments.isEmpty()) {
             throw new IllegalArgumentException("You are not scheduled on this day.");
         }
 
-        // If they have multiple shifts that day, just use the first for now.
-        Assignment offer = assignments.get(0);
+        // Find the assignment that matches the selected period (LUNCH or DINNER)
+        Assignment offer = assignments.stream()
+                .filter(a -> a.getShift() != null && a.getShift().getPeriod() == period)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "You are not scheduled for the selected shift (" + period + ") on this day."
+                ));
 
         Request r = new Request();
         r.setType(RequestType.TRADE);
@@ -121,7 +134,8 @@ public class RequestService {
         r.setCreatedAt(Instant.now());
         r.setOfferAssignment(offer);
         r.setReceiverConfirmed(false);
-        // r.setNote(null); // optional if you support notes on creation
+        // r.setNote(null); // optional
+
         return requestRepo.save(r);
     }
 
@@ -283,7 +297,42 @@ public class RequestService {
     }
 
     public List<Request> listPending(LocalDate start, LocalDate end) {
-        return requestRepo.findByStatusAndRequestDateBetween(RequestStatus.PENDING, start, end);
+        // PENDING requests in the date range
+        List<Request> pending = requestRepo.findByStatusAndRequestDateBetween(
+                RequestStatus.PENDING, start, end
+        );
+
+        // Oldest first, so manager can see who requested earlier
+        pending.sort(Comparator.comparing(Request::getCreatedAt));
+
+        return pending;
+    }
+
+    /**
+     * All decided requests (APPROVED + DENIED) in the date range,
+     * newest decisions first (for manager history view).
+     */
+    public List<Request> listDecided(LocalDate start, LocalDate end) {
+        List<Request> approved = requestRepo.findByStatusAndRequestDateBetween(
+                RequestStatus.APPROVED, start, end
+        );
+        List<Request> denied = requestRepo.findByStatusAndRequestDateBetween(
+                RequestStatus.DENIED, start, end
+        );
+
+        List<Request> all = new ArrayList<>();
+        all.addAll(approved);
+        all.addAll(denied);
+
+        // Sort by decidedAt, newest first. Nulls (shouldn't happen) go last.
+        all.sort(
+                Comparator.comparing(
+                        Request::getDecidedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ).reversed()
+        );
+
+        return all;
     }
 
     /**

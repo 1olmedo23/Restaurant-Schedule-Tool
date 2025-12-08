@@ -10,6 +10,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.resto.scheduler.model.enums.ShiftPeriod;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.time.Instant;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -55,16 +63,21 @@ public class ManagerRequestController {
     @PostMapping("/trade")
     public String submitTrade(Authentication auth,
                               @RequestParam("date") String dateStr,
+                              @RequestParam("period") String periodStr,
                               @RequestParam("receiverId") Long receiverId) {
         AppUser me = me(auth);
         LocalDate date = LocalDate.parse(dateStr);
 
         AppUser receiver = userRepo.findById(receiverId).orElseThrow();
 
-        // RequestService.createTrade now expects a String username as 3rd param
-        requestService.createTrade(me, date, receiver.getUsername());
-
-        return "redirect:/manager/requests?trade_submitted";
+        try {
+            ShiftPeriod period = ShiftPeriod.valueOf(periodStr);
+            requestService.createTrade(me, date, period, receiver.getUsername());
+            return "redirect:/manager/requests?trade_submitted";
+        } catch (IllegalArgumentException ex) {
+            String msg = URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/manager/requests?error=" + msg;
+        }
     }
 
     /** Process queue (approve/deny) */
@@ -74,11 +87,25 @@ public class ManagerRequestController {
                                Model model) {
         LocalDate start = (startStr != null ? LocalDate.parse(startStr) : LocalDate.now());
         LocalDate end   = (endStr != null ? LocalDate.parse(endStr) : LocalDate.now().plusYears(1));
+
+        // Pending (oldest first)
         List<Request> pending = requestService.listPending(start, end);
+
+        // History (APPROVED + DENIED, newest decisions first)
+        List<Request> decided = requestService.listDecided(start, end);
+
+        // Decide which rows need seconds shown (collisions in the same minute)
+        Map<Long, Boolean> pendingShowSeconds = buildShowSecondsMap(pending);
+        Map<Long, Boolean> decidedShowSeconds = buildShowSecondsMap(decided);
+
         model.addAttribute("pending", pending);
+        model.addAttribute("decided", decided);
+        model.addAttribute("pendingShowSeconds", pendingShowSeconds);
+        model.addAttribute("decidedShowSeconds", decidedShowSeconds);
         model.addAttribute("start", start);
         model.addAttribute("end", end);
         model.addAttribute("active", "manager-process-requests");
+
         return "manager/process";
     }
 
@@ -117,5 +144,39 @@ public class ManagerRequestController {
 
     private AppUser me(Authentication auth) {
         return userRepo.findByUsername(auth.getName()).orElseThrow();
+    }
+
+    /**
+     * For a given list of requests, mark which ones share a createdAt minute
+     * with at least one other request. Those will show seconds in the UI.
+     */
+    private Map<Long, Boolean> buildShowSecondsMap(List<Request> requests) {
+        Map<String, Integer> minuteCounts = new HashMap<>();
+
+        // First pass: count how many requests fall into each minute
+        for (Request r : requests) {
+            Instant created = r.getCreatedAt();
+            if (created == null) continue;
+
+            Instant minuteKey = created.truncatedTo(ChronoUnit.MINUTES);
+            String key = minuteKey.toString();
+            minuteCounts.merge(key, 1, Integer::sum);
+        }
+
+        // Second pass: mark requests that share their minute with others
+        Map<Long, Boolean> result = new HashMap<>();
+        for (Request r : requests) {
+            Instant created = r.getCreatedAt();
+            if (created == null || r.getId() == null) {
+                result.put(r.getId(), false);
+                continue;
+            }
+            Instant minuteKey = created.truncatedTo(ChronoUnit.MINUTES);
+            String key = minuteKey.toString();
+            boolean showSeconds = minuteCounts.getOrDefault(key, 0) > 1;
+            result.put(r.getId(), showSeconds);
+        }
+
+        return result;
     }
 }

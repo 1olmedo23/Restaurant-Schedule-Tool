@@ -31,17 +31,44 @@
                     <div class="card-body">
                         <form method="post" th:action="@{/employee/requests/trade}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
                             <div class="mb-2">
                                 <label class="form-label">Date (must be a day you’re assigned)</label>
                                 <input class="form-control" type="date" name="date" required />
                             </div>
+
+                            <div class="mb-2">
+                                <label class="form-label d-block">Shift</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="period"
+                                           value="LUNCH"
+                                           required>
+                                    <label class="form-check-label">Lunch</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="period"
+                                           value="DINNER">
+                                    <label class="form-check-label">Dinner</label>
+                                </div>
+                                <div class="form-text">
+                                    Choose which shift you want to trade on that day.
+                                </div>
+                            </div>
+
                             <div class="mb-2">
                                 <label class="form-label">Receiver</label>
                                 <select class="form-select" name="receiverId" required>
                                     <option value="">— Select —</option>
-                                    <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.fullName + ' (' + e.username + ')'}"></option>
+                                    <option th:each="e : ${employees}"
+                                            th:value="${e.id}"
+                                            th:text="${e.fullName + ' (' + e.username + ')'}"></option>
                                 </select>
                             </div>
+
                             <button class="btn btn-primary">Submit</button>
                         </form>
                     </div>
@@ -95,12 +122,13 @@
 
                     <!-- Receiver confirmation (for trade only) -->
                     <td>
-                <span th:if="${r.type.name() == 'TRADE'}"
-                      class="badge"
-                      th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
-                      th:text="${r.receiverConfirmed ? 'Receiver confirmed' : 'Waiting for receiver'}">
-                    Waiting for receiver
-                </span>
+                        <!-- Show receiver status only while trade is still pending -->
+                        <span th:if="${r.type.name() == 'TRADE' and r.status.name() == 'PENDING'}"
+                              class="badge"
+                              th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${r.receiverConfirmed ? 'Receiver confirmed' : 'Waiting for receiver'}">
+                            Waiting for receiver
+                        </span>
                     </td>
                 </tr>
                 </tbody>
@@ -138,14 +166,15 @@
 
                     <!-- STATUS + small receiver indicator -->
                     <td>
-                <span class="badge"
-                      th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
-                                      (r.status.name() == 'DENIED' ? 'bg-danger' : 'bg-secondary')}">
-                    <span th:text="${r.status}">PENDING</span>
-                </span>
-                        <span th:if="${r.type.name() == 'TRADE'}" class="ms-1 small">
-                    (<span th:text="${r.receiverConfirmed ? 'You confirmed' : 'Waiting for you'}"></span>)
-                </span>
+                        <span class="badge"
+                              th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
+                              (r.status.name() == 'DENIED' ? 'bg-danger' : 'bg-secondary')}">
+                            <span th:text="${r.status}">PENDING</span>
+                        </span>
+                        <span th:if="${r.type.name() == 'TRADE' and r.status.name() == 'PENDING'}"
+                              class="ms-1 small">
+                            (<span th:text="${r.receiverConfirmed ? 'You confirmed' : 'Waiting for you'}"></span>)
+                        </span>
                     </td>
 
                     <!-- MANAGER NOTE -->

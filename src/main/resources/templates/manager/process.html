@@ -1,19 +1,40 @@
-<th:block th:with="active='manager-process-requests'" th:replace="~{layout :: base(~{::section})}">
+<th:block th:with="active='manager-process-requests'"
+          th:replace="~{layout :: base(~{::section})}">
     <section>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h4 mb-0">Process Requests</h1>
+
+            <!-- Date range filter -->
             <form class="d-flex gap-2" method="get" th:action="@{/manager/requests/process}">
-                <input class="form-control form-control-sm" type="date" name="start" th:value="${start}" />
-                <input class="form-control form-control-sm" type="date" name="end" th:value="${end}" />
+                <div>
+                    <input class="form-control form-control-sm"
+                           type="date"
+                           name="start"
+                           th:value="${start}" />
+                </div>
+                <div>
+                    <input class="form-control form-control-sm"
+                           type="date"
+                           name="end"
+                           th:value="${end}" />
+                </div>
                 <button class="btn btn-sm btn-outline-secondary">Filter</button>
             </form>
         </div>
 
-        <div th:if="${param.approved}" class="alert alert-success">Approved.</div>
-        <div th:if="${param.denied}" class="alert alert-warning">Denied.</div>
-        <div th:if="${param.error}" class="alert alert-danger" th:text="${param.error}"></div>
+        <!-- Flash messages -->
+        <div th:if="${param.approved}" class="alert alert-success py-2">Request approved.</div>
+        <div th:if="${param.denied}" class="alert alert-warning py-2">Request denied.</div>
+        <div th:if="${param.error}" class="alert alert-danger py-2" th:text="${param.error}"></div>
 
-        <div class="table-responsive">
+        <!-- PENDING REQUESTS -->
+        <h2 class="h6 mt-3 mb-2">Pending requests</h2>
+
+        <div th:if="${#lists.isEmpty(pending)}" class="alert alert-secondary small">
+            No pending requests in this range.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(pending)}" class="table-responsive mb-4">
             <table class="table table-sm align-middle">
                 <thead>
                 <tr>
@@ -21,8 +42,8 @@
                     <th>Date</th>
                     <th>Requester</th>
                     <th>Receiver</th>
-                    <th>Receiver OK?</th>
-                    <th>Decide</th>
+                    <th>Requested at</th>
+                    <th style="width: 320px;">Decide</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -38,56 +59,152 @@
                         11-21-25
                     </td>
 
-                    <td th:text="${r.requester.fullName}">Alice</td>
-                    <td th:text="${r.receiver != null ? r.receiver.fullName : ''}"></td>
+                    <td th:text="${r.requester != null ? r.requester.fullName : ''}">Requester</td>
+                    <td th:text="${r.receiver != null ? r.receiver.fullName : ''}">Receiver</td>
 
-                    <td>
-                <span th:if="${r.type.name()=='TRADE'}" class="badge"
-                      th:classappend="${r.receiverConfirmed ? 'bg-success' : 'bg-secondary'}"
-                      th:text="${r.receiverConfirmed ? 'Confirmed' : 'Pending'}">
-                    Pending
-                </span>
+                    <!-- Created timestamp: AM/PM, seconds only if minute is shared -->
+                    <td th:text="${
+                          pendingShowSeconds[r.id] != null && pendingShowSeconds[r.id]
+                          ? #temporals.format(r.createdAt, 'MM-dd-yy hh:mm:ss a')
+                          : #temporals.format(r.createdAt, 'MM-dd-yy hh:mm a')
+                        }">
+                        11-21-25 02:30 PM
                     </td>
 
+                    <!-- Approve / Deny side by side -->
                     <td>
-                        <!-- APPROVE form -->
-                        <form class="d-inline" method="post" th:action="@{|/manager/requests/${r.id}/approve|}">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <div class="d-flex flex-row flex-wrap gap-2">
+                            <!-- LEFT: APPROVE + note -->
+                            <div class="flex-grow-1">
+                                <form method="post"
+                                      th:action="@{|/manager/requests/${r.id}/approve|}">
+                                    <input type="hidden"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}" />
+                                    <input type="hidden" name="redirect" value="process"/>
 
-                            <input class="form-control form-control-sm d-inline-block"
-                                   style="width:220px"
-                                   name="note"
-                                   placeholder="Optional note"/>
+                                    <div class="input-group input-group-sm mb-1">
+                                        <span class="input-group-text">Note</span>
+                                        <input class="form-control"
+                                               name="note"
+                                               placeholder="Optional note"/>
+                                        <button class="btn btn-success btn-sm" type="submit">
+                                            Approve
+                                        </button>
+                                    </div>
 
-                            <button class="btn btn-sm btn-success ms-1">
-                                Approve
-                            </button>
-
-                            <!-- Override checkbox only for TRADE + receiver not yet confirmed -->
-                            <div class="form-check form-check-inline ms-1"
-                                 th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="override"
-                                       value="true"
-                                       th:id="'override_' + ${r.id}" />
-                                <label class="form-check-label small"
-                                       th:for="'override_' + ${r.id}">
-                                    Override
-                                </label>
+                                    <!-- Override checkbox only for TRADE + receiver not yet confirmed -->
+                                    <div class="form-check mb-0"
+                                         th:if="${r.type.name()=='TRADE' && !r.receiverConfirmed}">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="override"
+                                               value="true"
+                                               th:id="'override_' + ${r.id}" />
+                                        <label class="form-check-label small"
+                                               th:for="'override_' + ${r.id}">
+                                            Override receiver confirmation
+                                        </label>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
 
-                        <!-- DENY form (no override here) -->
-                        <form class="d-inline ms-1" method="post" th:action="@{|/manager/requests/${r.id}/deny|}">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <input class="form-control form-control-sm d-inline-block"
-                                   style="width:220px"
-                                   name="note"
-                                   placeholder="Optional note"/>
-                            <button class="btn btn-sm btn-outline-danger">Deny</button>
-                        </form>
+                            <!-- RIGHT: DENY + note -->
+                            <div class="flex-grow-1">
+                                <form method="post"
+                                      th:action="@{|/manager/requests/${r.id}/deny|}">
+                                    <input type="hidden"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}" />
+                                    <input type="hidden" name="redirect" value="process"/>
+
+                                    <div class="input-group input-group-sm mb-1">
+                                        <span class="input-group-text">Note</span>
+                                        <input class="form-control"
+                                               name="note"
+                                               placeholder="Optional note"/>
+                                        <button class="btn btn-outline-danger btn-sm" type="submit">
+                                            Deny
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- HISTORY: APPROVED + DENIED -->
+        <h2 class="h6 mt-4 mb-2">History (approved / denied)</h2>
+
+        <div th:if="${#lists.isEmpty(decided)}" class="text-muted small">
+            No approved or denied requests in this range.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(decided)}" class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Requester</th>
+                    <th>Receiver</th>
+                    <th>Status</th>
+                    <th>Manager</th>
+                    <th>Requested at</th>
+                    <th>Note</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${decided}">
+                    <!-- Type -->
+                    <td th:text="${r.type.name() == 'TIME_OFF' ? 'Time Off' :
+                         (r.type.name() == 'TRADE' ? 'Trade' : r.type.name())}">
+                        Type
+                    </td>
+
+                    <!-- Date -->
+                    <td th:text="${#temporals.format(r.requestDate, 'MM-dd-yy')}">
+                        11-21-25
+                    </td>
+
+                    <!-- Requester -->
+                    <td th:text="${r.requester != null ? r.requester.fullName : ''}">
+                        Requester
+                    </td>
+
+                    <!-- Receiver -->
+                    <td th:text="${r.receiver != null ? r.receiver.fullName : ''}">
+                        Receiver
+                    </td>
+
+                    <!-- Status badge -->
+                    <td>
+                        <span class="badge"
+                              th:classappend="${r.status.name() == 'APPROVED' ? ' bg-success' :
+                                              (r.status.name() == 'DENIED' ? ' bg-danger' : ' bg-secondary')}">
+                            <span th:text="${r.status}">APPROVED</span>
+                        </span>
+                    </td>
+
+                    <!-- Manager (decidedBy) -->
+                    <td th:text="${r.decidedBy != null ? r.decidedBy.fullName : ''}">
+                        Manager
+                    </td>
+
+                    <!-- Requested at, AM/PM with conditional seconds -->
+                    <td th:text="${
+                          decidedShowSeconds[r.id] != null && decidedShowSeconds[r.id]
+                          ? #temporals.format(r.createdAt, 'MM-dd-yy hh:mm:ss a')
+                          : #temporals.format(r.createdAt, 'MM-dd-yy hh:mm a')
+                        }">
+                        11-21-25 01:00 PM
+                    </td>
+
+                    <!-- Manager note -->
+                    <td th:text="${r.note}">Manager note</td>
                 </tr>
                 </tbody>
             </table>

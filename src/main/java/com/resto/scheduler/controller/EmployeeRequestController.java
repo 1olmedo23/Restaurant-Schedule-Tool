@@ -10,6 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.resto.scheduler.model.enums.ShiftPeriod;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import java.util.Objects;
 import java.time.LocalDate;
@@ -62,15 +65,21 @@ public class EmployeeRequestController {
     @PostMapping("/trade")
     public String submitTrade(Authentication auth,
                               @RequestParam("date") String dateStr,
+                              @RequestParam("period") String periodStr,
                               @RequestParam("receiverId") Long receiverId) {
         AppUser me = me(auth);
         LocalDate date = LocalDate.parse(dateStr);
         AppUser receiver = userRepo.findById(receiverId).orElseThrow();
 
-        // RequestService.createTrade now expects receiverUsername (String), not AppUser
-        requestService.createTrade(me, date, receiver.getUsername());
-
-        return "redirect:/employee/requests?trade_submitted";
+        try {
+            ShiftPeriod period = ShiftPeriod.valueOf(periodStr); // "LUNCH" or "DINNER"
+            requestService.createTrade(me, date, period, receiver.getUsername());
+            return "redirect:/employee/requests?trade_submitted";
+        } catch (IllegalArgumentException ex) {
+            // Show a friendly error banner at the top of the Requests page
+            String msg = URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/employee/requests?error=" + msg;
+        }
     }
 
     @PostMapping("/{id}/confirm")
