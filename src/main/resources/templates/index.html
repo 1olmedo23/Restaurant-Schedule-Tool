@@ -2,10 +2,12 @@
           th:replace="~{layout :: base(~{::section})}">
     <section>
         <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">Welcome to Resto Scheduler</h1>
-                <p class="col-md-8 fs-5">Set availability, build schedules, and keep everyone on the same page.</p>
-                <a class="btn btn-primary btn-lg" th:href="@{/login}">Login</a>
+            <div class="container-fluid py-5 text-center">
+                <h1 class="display-5 fw-bold">Welcome to SKT Scheduler</h1>
+                <p class="fs-5 mx-auto" style="max-width: 600px;">
+                    Keeping everyone on the same page.
+                </p>
+                <a class="btn btn-primary btn-lg mt-3" th:href="@{/login}">Login</a>
             </div>
         </div>
     </section>

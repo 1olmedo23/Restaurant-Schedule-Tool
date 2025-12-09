@@ -17,9 +17,14 @@
                                 <label class="form-label">Date</label>
                                 <input class="form-control" type="date" name="date" required />
                             </div>
-                            <p class="text-muted small">Time off request is only available for non scheduled days.<br>
-                            Submit a trade request if you are already scheduled.</p>
-                            <button class="btn btn-primary">Submit</button>
+                            <p class="text-muted small">
+                                Time off request is only available for non scheduled days.<br>
+                                Submit a trade request if you are already scheduled.
+                            </p>
+                            <button class="btn btn-primary"
+                                    onclick="return confirm('Are you sure you want to submit this time off request?');">
+                                Submit
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -69,7 +74,10 @@
                                 </select>
                             </div>
 
-                            <button class="btn btn-primary">Submit</button>
+                            <button class="btn btn-primary"
+                                    onclick="return confirm('Are you sure you want to submit this trade request?');">
+                                Submit
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -110,11 +118,11 @@
 
                     <!-- STATUS badge -->
                     <td>
-                <span class="badge"
-                      th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
+                        <span class="badge"
+                              th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' :
                                       (r.status.name() == 'DENIED' ? 'bg-danger' : 'bg-secondary')}">
-                    <span th:text="${r.status}">PENDING</span>
-                </span>
+                            <span th:text="${r.status}">PENDING</span>
+                        </span>
                     </td>
 
                     <!-- MANAGER NOTE -->

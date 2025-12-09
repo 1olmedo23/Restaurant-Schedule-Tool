@@ -31,7 +31,7 @@
         <h2 class="h6 mt-3 mb-2">Pending requests</h2>
 
         <div th:if="${#lists.isEmpty(pending)}" class="alert alert-secondary small">
-            No pending requests in this range.
+            No pending requests.
         </div>
 
         <div th:if="${!#lists.isEmpty(pending)}" class="table-responsive mb-4">
@@ -88,7 +88,9 @@
                                         <input class="form-control"
                                                name="note"
                                                placeholder="Optional note"/>
-                                        <button class="btn btn-success btn-sm" type="submit">
+                                        <button class="btn btn-success btn-sm"
+                                                type="submit"
+                                                onclick="return confirm('Approve this request?');">
                                             Approve
                                         </button>
                                     </div>
@@ -123,7 +125,9 @@
                                         <input class="form-control"
                                                name="note"
                                                placeholder="Optional note"/>
-                                        <button class="btn btn-outline-danger btn-sm" type="submit">
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                type="submit"
+                                                onclick="return confirm('Deny this request?');">
                                             Deny
                                         </button>
                                     </div>

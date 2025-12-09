@@ -257,6 +257,8 @@ public class EmployeeController {
     model.addAttribute("prevStart", prevStart);
     model.addAttribute("nextStart", nextStart);
 
+    model.addAttribute("highlightCurrentUser", true);
+
     return "employee/schedule";
   }
 }

@@ -32,7 +32,11 @@
                     </tbody>
                 </table>
             </div>
-            <button class="btn btn-primary">Save Availability</button>
+            <button class="btn btn-primary"
+                    type="submit"
+                    onclick="return confirm('Are you sure you want to save your availability changes?');">
+                Save Availability
+            </button>
             <span th:if="${param.saved}" class="ms-2 text-success">Submitted</span>
 
             <div class="mt-2 small">
@@ -47,6 +51,8 @@
                 </span>
             </div>
         </form>
+
+        <!-- Manager-only pending availability queue -->
         <div class="mt-4" sec:authorize="hasRole('MANAGER')">
             <h2 class="h5 mb-3">Pending Availability Requests</h2>
 
@@ -121,14 +127,22 @@
                                   method="post"
                                   class="d-inline">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                                <button class="btn btn-sm btn-success"
+                                        type="submit"
+                                        onclick="return confirm('Approve this availability request?');">
+                                    Approve
+                                </button>
                             </form>
 
                             <form th:action="@{|/manager/availability/user/${u.id}/deny|}"
                                   method="post"
                                   class="d-inline ms-1">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button class="btn btn-sm btn-outline-danger" type="submit">Deny</button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        type="submit"
+                                        onclick="return confirm('Deny this availability request?');">
+                                    Deny
+                                </button>
                             </form>
                         </td>
                     </tr>
