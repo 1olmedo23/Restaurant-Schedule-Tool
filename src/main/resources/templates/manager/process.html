@@ -1,24 +1,28 @@
 <th:block th:with="active='manager-process-requests'"
           th:replace="~{layout :: base(~{::section})}">
     <section>
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 process-header">
             <h1 class="h4 mb-0">Process Requests</h1>
 
             <!-- Date range filter -->
-            <form class="d-flex gap-2" method="get" th:action="@{/manager/requests/process}">
-                <div>
+            <form class="d-none d-lg-flex gap-2 process-filter-form"
+                  method="get"
+                  th:action="@{/manager/requests/process}">
+                <div class="process-filter-field">
                     <input class="form-control form-control-sm"
                            type="date"
                            name="start"
                            th:value="${start}" />
                 </div>
-                <div>
+                <div class="process-filter-field">
                     <input class="form-control form-control-sm"
                            type="date"
                            name="end"
                            th:value="${end}" />
                 </div>
-                <button class="btn btn-sm btn-outline-secondary">Filter</button>
+                <button class="btn btn-sm btn-outline-secondary process-filter-btn">
+                    Filter
+                </button>
             </form>
         </div>
 
@@ -35,15 +39,15 @@
         </div>
 
         <div th:if="${!#lists.isEmpty(pending)}" class="table-responsive mb-4">
-            <table class="table table-sm align-middle">
+            <table class="table table-sm align-middle process-table process-pending-table">
                 <thead>
                 <tr>
                     <th>Type</th>
                     <th>Date</th>
                     <th>Requester</th>
                     <th>Receiver</th>
-                    <th>Requested at</th>
-                    <th style="width: 320px;">Decide</th>
+                    <th class="process-requested-at-col">Requested at</th>
+                    <th class="process-decide-col" style="width: 320px;">Decide</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -63,7 +67,8 @@
                     <td th:text="${r.receiver != null ? r.receiver.fullName : ''}">Receiver</td>
 
                     <!-- Created timestamp: AM/PM, seconds only if minute is shared -->
-                    <td th:text="${
+                    <td class="process-requested-at-col"
+                        th:text="${
                           pendingShowSeconds[r.id] != null && pendingShowSeconds[r.id]
                           ? #temporals.format(r.createdAt, 'MM-dd-yy hh:mm:ss a')
                           : #temporals.format(r.createdAt, 'MM-dd-yy hh:mm a')
@@ -73,7 +78,7 @@
 
                     <!-- Approve / Deny side by side -->
                     <td>
-                        <div class="d-flex flex-row flex-wrap gap-2">
+                        <div class="d-flex flex-row flex-wrap gap-2 process-decide-cell">
                             <!-- LEFT: APPROVE + note -->
                             <div class="flex-grow-1">
                                 <form method="post"
@@ -148,7 +153,7 @@
         </div>
 
         <div th:if="${!#lists.isEmpty(decided)}" class="table-responsive">
-            <table class="table table-sm align-middle">
+            <table class="table table-sm align-middle process-table process-history-table">
                 <thead>
                 <tr>
                     <th>Type</th>
@@ -157,8 +162,8 @@
                     <th>Receiver</th>
                     <th>Status</th>
                     <th>Manager</th>
-                    <th>Requested at</th>
-                    <th>Note</th>
+                    <th class="process-requested-at-col">Requested at</th>
+                    <th class="process-note-col">Note</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -199,7 +204,8 @@
                     </td>
 
                     <!-- Requested at, AM/PM with conditional seconds -->
-                    <td th:text="${
+                    <td class="process-requested-at-col"
+                        th:text="${
                           decidedShowSeconds[r.id] != null && decidedShowSeconds[r.id]
                           ? #temporals.format(r.createdAt, 'MM-dd-yy hh:mm:ss a')
                           : #temporals.format(r.createdAt, 'MM-dd-yy hh:mm a')
@@ -208,7 +214,7 @@
                     </td>
 
                     <!-- Manager note -->
-                    <td th:text="${r.note}">Manager note</td>
+                    <td class="process-note-col" th:text="${r.note}">Manager note</td>
                 </tr>
                 </tbody>
             </table>

@@ -1,6 +1,7 @@
 <th:block th:with="active='employee-requests'" th:replace="~{layout :: base(~{::section})}">
     <section>
         <h1 class="h4 mb-3">My Requests</h1>
+
         <div class="alert alert-danger" th:if="${param.error}" th:text="${param.error}"></div>
         <div class="alert alert-success" th:if="${param.submitted}">Request submitted.</div>
         <div class="alert alert-success" th:if="${param.trade_submitted}">Trade request submitted.</div>
@@ -8,7 +9,7 @@
 
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="card">
+                <div class="card request-card">
                     <div class="card-header">Request Time Off</div>
                     <div class="card-body">
                         <form method="post" th:action="@{/employee/requests/time-off}">
@@ -21,7 +22,7 @@
                                 Time off request is only available for non scheduled days.<br>
                                 Submit a trade request if you are already scheduled.
                             </p>
-                            <button class="btn btn-primary"
+                            <button class="btn btn-primary request-submit-btn"
                                     onclick="return confirm('Are you sure you want to submit this time off request?');">
                                 Submit
                             </button>
@@ -31,14 +32,14 @@
             </div>
 
             <div class="col-md-6">
-                <div class="card">
+                <div class="card request-card">
                     <div class="card-header">Request Trade</div>
                     <div class="card-body">
                         <form method="post" th:action="@{/employee/requests/trade}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                             <div class="mb-2">
-                                <label class="form-label">Date (must be a day you’re assigned)</label>
+                                <label class="form-label">Date</label>
                                 <input class="form-control" type="date" name="date" required />
                             </div>
 
@@ -74,7 +75,7 @@
                                 </select>
                             </div>
 
-                            <button class="btn btn-primary"
+                            <button class="btn btn-primary request-submit-btn"
                                     onclick="return confirm('Are you sure you want to submit this trade request?');">
                                 Submit
                             </button>
@@ -89,14 +90,14 @@
         <h2 class="h5 mt-3">My Requests</h2>
 
         <div class="table-responsive">
-            <table class="table table-sm align-middle">
+            <table class="table table-sm align-middle requests-table">
                 <thead>
                 <tr>
                     <th>Type</th>
                     <th>Date</th>
                     <th>Receiver</th>
                     <th>Status</th>
-                    <th>Manager Note</th>
+                    <th class="requests-col-note">Manager Note</th>
                     <th>Receiver Status</th>
                 </tr>
                 </thead>
@@ -126,7 +127,7 @@
                     </td>
 
                     <!-- MANAGER NOTE -->
-                    <td th:text="${r.note}">Manager note here</td>
+                    <td class="requests-col-note" th:text="${r.note}">Manager note here</td>
 
                     <!-- Receiver confirmation (for trade only) -->
                     <td>
@@ -146,14 +147,14 @@
         <h2 class="h5 mt-4">Requests To Me</h2>
 
         <div class="table-responsive">
-            <table class="table table-sm align-middle">
+            <table class="table table-sm align-middle requests-table">
                 <thead>
                 <tr>
                     <th>Type</th>
                     <th>Date</th>
                     <th>From</th>
                     <th>Status</th>
-                    <th>Manager Note</th>
+                    <th class="requests-col-note">Manager Note</th>
                     <th>Action</th>
                 </tr>
                 </thead>
@@ -186,7 +187,7 @@
                     </td>
 
                     <!-- MANAGER NOTE -->
-                    <td th:text="${r.note}">Manager note here</td>
+                    <td class="requests-col-note" th:text="${r.note}">Manager note here</td>
 
                     <!-- CONFIRM button: ONLY when it's a pending trade and you haven't confirmed yet -->
                     <td>

@@ -23,7 +23,11 @@
             SKT Scheduler
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample">
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarsExample"
+                sec:authorize="isAuthenticated()">
             <span class="navbar-toggler-icon"></span>
         </button>
 

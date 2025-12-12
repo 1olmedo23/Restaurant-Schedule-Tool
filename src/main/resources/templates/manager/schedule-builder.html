@@ -1,7 +1,35 @@
 <th:block th:with="active='manager-schedule'"
           th:replace="~{layout :: base(~{::section})}">
     <section>
-        <div class="d-flex align-items-center justify-content-between mb-3">
+
+        <!-- Mobile header: phones only -->
+        <div class="manager-schedule-header-mobile d-flex d-sm-none flex-column align-items-center mb-2">
+            <div class="text-center">
+                <h1 class="h5 mb-0">Schedule Builder (2 Weeks)</h1>
+                <div class="text-muted small">
+                    <strong th:text="${#temporals.format(windowStart,'MM/dd/yy')}">MM/DD/YY</strong>
+                    &nbsp;→&nbsp;
+                    <strong th:text="${#temporals.format(windowEnd,'MM/dd/yy')}">MM/DD/YY</strong>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center gap-2 mt-2">
+                <a th:href="@{/manager/schedule-builder(start=${prevStart})}"
+                   class="btn btn-sm btn-outline-secondary">
+                    ◀ Prev
+                </a>
+                <a th:href="@{/manager/schedule-builder(start=${nextStart})}"
+                   class="btn btn-sm btn-outline-secondary">
+                    Next ▶
+                </a>
+                <a th:href="@{/manager/schedule-builder}"
+                   class="btn btn-sm btn-primary">
+                    Today
+                </a>
+            </div>
+        </div>
+
+        <!-- Desktop / tablet header: sm and up -->
+        <div class="d-none d-sm-flex align-items-center justify-content-between mb-3">
             <a th:href="@{/manager/schedule-builder(start=${prevStart})}"
                class="btn btn-sm btn-outline-secondary">◀ Previous 2 weeks</a>
 
@@ -23,17 +51,18 @@
             </div>
         </div>
 
-        <p class="text-muted">Click a day to assign employees to roles.</p>
+        <p class="text-muted small mb-2">Click a day to assign employees to roles.</p>
 
-        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-3">
+        <div class="manager-schedule-grid row row-cols-2 row-cols-md-4 row-cols-lg-7 g-3">
             <div class="col" th:each="d : ${days}">
-                <a class="card h-100 text-decoration-none hover-card"
+                <a class="card h-100 text-decoration-none hover-card manager-day-card"
                    th:classappend="${
-                (d.equals(today) ? ' today-card' : '') +
-                (postedDates.contains(d) ? ' posted-card' : '') +
-                (amendedDates.contains(d) ? ' amended-card' : '')
-           }"
+                       (d.equals(today) ? ' today-card' : '') +
+                       (postedDates.contains(d) ? ' posted-card' : '') +
+                       (amendedDates.contains(d) ? ' amended-card' : '')
+                   }"
                    th:href="@{'/manager/schedule/' + ${#temporals.format(d, 'yyyy-MM-dd')}}">
+
                     <div class="card-body">
                         <h5 class="card-title mb-1" th:text="${#temporals.format(d,'EEEE')}">Day</h5>
                         <div class="small text-muted" th:text="${#temporals.format(d,'MM/dd')}">00/00</div>
@@ -41,13 +70,13 @@
                         <!-- Approved time-off badges on the grid cards -->
                         <div class="mt-2"
                              th:if="${timeOffNamesByDate != null
-                             and #maps.containsKey(timeOffNamesByDate,
-                                                   #temporals.format(d,'yyyy-MM-dd'))}">
-                    <span class="badge bg-info text-dark me-1"
-                          th:each="n : ${timeOffNamesByDate[#temporals.format(d,'yyyy-MM-dd')]}"
-                          th:text="${'Time off: ' + n}">
-                        Time off: Name
-                    </span>
+                                     and #maps.containsKey(timeOffNamesByDate,
+                                                           #temporals.format(d,'yyyy-MM-dd'))}">
+                            <span class="badge bg-info text-dark me-1"
+                                  th:each="n : ${timeOffNamesByDate[#temporals.format(d,'yyyy-MM-dd')]}"
+                                  th:text="${'Time off: ' + n}">
+                                Time off: Name
+                            </span>
                         </div>
 
                         <div class="small text-muted" th:if="${d.equals(today)}">
@@ -56,14 +85,14 @@
 
                         <!-- Closed + Edited badges -->
                         <div class="mt-2">
-                    <span class="badge bg-secondary me-1"
-                          th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">
-                        Closed
-                    </span>
+                            <span class="badge bg-secondary me-1"
+                                  th:if="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7}">
+                                Closed
+                            </span>
                             <span class="badge bg-warning text-dark"
                                   th:if="${amendedDates.contains(d)}">
-                        Edited
-                    </span>
+                                Edited
+                            </span>
                         </div>
                     </div>
                 </a>

@@ -26,7 +26,20 @@ public class HomeController {
   }
 
   @GetMapping("/login")
-  public String login() {
+  public String login(Authentication auth) {
+    // If already logged in, do NOT show login again
+    if (auth != null && auth.isAuthenticated()) {
+      boolean isManager = auth.getAuthorities().stream()
+              .anyMatch(a -> "ROLE_MANAGER".equals(a.getAuthority()));
+
+      if (isManager) {
+        return "redirect:/manager/schedule-builder";
+      } else {
+        return "redirect:/employee/schedule";
+      }
+    }
+
+    // Anonymous user -> show login page
     return "login";
   }
 

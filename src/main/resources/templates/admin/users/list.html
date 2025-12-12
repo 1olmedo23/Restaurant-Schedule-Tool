@@ -1,9 +1,9 @@
 <th:block th:with="active='admin-users'"
           th:replace="~{layout :: base(~{::section})}">
     <section>
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="h4 mb-3">Users</h1>
-            <a class="btn btn-primary" th:href="@{/admin/users/new}">New User</a>
+        <div class="d-flex justify-content-between align-items-center mb-2 admin-users-header">
+            <h1 class="h4 mb-0">Users</h1>
+            <a class="btn btn-primary btn-sm admin-new-user-btn" th:href="@{/admin/users/new}">New User</a>
         </div>
 
         <div th:if="${created}" class="alert alert-success">User created.</div>
@@ -12,37 +12,52 @@
         <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
 
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table class="table table-striped align-middle admin-users-table">
                 <thead>
                 <tr>
-                    <th>ID</th><th>Username</th><th>Name</th><th>Email</th>
-                    <th>Roles</th><th>Enabled</th><th style="width:220px;">Actions</th>
+                    <th class="admin-col-id">ID</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <!-- Hide email on the very smallest screens using Bootstrap d-none/d-sm-table-cell -->
+                    <th class="d-none d-sm-table-cell">Email</th>
+                    <!-- Hide roles on phones; show from md and up -->
+                    <th class="d-none d-md-table-cell">Roles</th>
+                    <th class="admin-col-enabled">Enabled</th>
+                    <th class="admin-col-actions">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="u : ${users}">
-                    <td th:text="${u.id}">1</td>
+                    <td class="admin-col-id" th:text="${u.id}">1</td>
                     <td th:text="${u.username}">alice</td>
                     <td th:text="${u.fullName}">Alice User</td>
-                    <!-- Escape the @ in fallback text to avoid IDE warning -->
-                    <td th:text="${u.email}">alice&#64;example.com</td>
-                    <td>
-                        <span class="badge bg-secondary me-1" th:each="r : ${u.roles}" th:text="${r.name}">EMPLOYEE</span>
+
+                    <!-- Email: hidden on xs, shown on sm+ -->
+                    <td class="d-none d-sm-table-cell"
+                        th:text="${u.email}">alice&#64;example.com</td>
+
+                    <!-- Roles: hidden on phones, shown md+ -->
+                    <td class="d-none d-md-table-cell">
+                        <span class="badge bg-secondary me-1"
+                              th:each="r : ${u.roles}"
+                              th:text="${r.name}">EMPLOYEE</span>
                     </td>
-                    <td>
+
+                    <td class="admin-col-enabled">
                         <span th:if="${u.enabled}" class="badge bg-success">Yes</span>
                         <span th:unless="${u.enabled}" class="badge bg-secondary">No</span>
                     </td>
-                    <td>
-                        <div class="d-flex gap-2">
+
+                    <td class="admin-col-actions">
+                        <div class="d-flex flex-column flex-sm-row gap-2 admin-actions-wrap">
                             <!-- Toggle Enable/Disable (hide for yourself) -->
                             <form th:if="${u.username != #authentication.name}"
                                   th:action="@{'/admin/users/' + ${u.id} + '/toggle'}" method="post"
                                   class="js-confirm"
                                   th:attr="data-confirm=${u.enabled} ? 'Disable ' + u.username + '?' : 'Enable ' + u.username + '?'">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button class="btn"
-                                        th:classappend="${u.enabled} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                <button class="btn btn-sm w-100 w-sm-auto"
+                                        th:classappend="${u.enabled} ? ' btn-outline-danger' : ' btn-outline-success'"
                                         th:text="${u.enabled} ? 'Disable' : 'Enable'">Toggle</button>
                             </form>
 
@@ -52,7 +67,7 @@
                                   class="js-confirm"
                                   th:attr="data-confirm='Permanently delete ' + u.username + '? This cannot be undone.'">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button class="btn btn-outline-secondary">Delete</button>
+                                <button class="btn btn-sm btn-outline-secondary w-100 w-sm-auto">Delete</button>
                             </form>
                         </div>
                     </td>

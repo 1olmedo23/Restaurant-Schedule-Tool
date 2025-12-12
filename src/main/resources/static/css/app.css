@@ -9,7 +9,7 @@
 
 .navbar .nav-link.active {
     font-weight: 600;
-    border-bottom:2px solid #0d6efd
+    border-bottom: 2px solid #0d6efd;
 }
 
 /* Highlight the current day in the manager 31-day view */
@@ -24,26 +24,26 @@
     transform: translateY(-1px);
 }
 
-/* Yellow highlight for days inside any POSTED period */
+/* Posted day tint */
 .posted-card {
-    background: rgba(83, 198, 66, 0.04);           /* light warning tint */
+    background: rgba(83, 198, 66, 0.04);
     border-color: rgba(47, 96, 158, 0.11);
     box-shadow: inset 0 0 0 2px rgba(54, 108, 174, 0.09);
 }
 
-/* If today is also posted, keep the blue fill but retain a stronger amber outline */
+/* Today + posted */
 .today-card.posted-card {
     box-shadow: inset 0 0 0 2px rgba(58, 120, 213, 0.15);
 }
 
 /* Edited (amended) day tint */
 .amended-card {
-    background: rgba(255, 159, 64, 0.10);         /* light orange */
+    background: rgba(255, 159, 64, 0.10);
     border-color: rgba(255, 159, 64, 0.16);
     box-shadow: inset 0 0 0 2px rgba(255, 159, 64, 0.18);
 }
 
-/* If today is amended too, keep blue but add stronger orange outline */
+/* Today + amended */
 .today-card.amended-card {
     box-shadow: inset 0 0 0 2px rgba(255, 159, 64, 0.63);
 }
@@ -52,4 +52,617 @@
 .schedule-name-current {
     font-weight: 700;
     color: rgb(0, 126, 255);
+}
+
+/* -------------------------------------------------- */
+/* GLOBAL RESPONSIVE TWEAKS                          */
+/* -------------------------------------------------- */
+
+/* Extra-small devices (phones <576px) */
+@media (max-width: 575.98px) {
+
+    /* Reduce horizontal padding so content uses more of the small screen */
+    main.container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Give nav links a bit more vertical room for touch targets */
+    .navbar-nav .nav-link {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    /* Make cards and panels breathe a bit on mobile */
+    .card,
+    .hover-card,
+    .today-card,
+    .posted-card,
+    .amended-card {
+        margin-bottom: 0.75rem;
+    }
+
+    /* Utility: text a bit smaller on tight layouts (we can tweak later if needed) */
+    .text-sm-mobile {
+        font-size: 0.9rem;
+    }
+
+    /* Landing page: ONLY on phones */
+    .landing-section {
+        padding-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .landing-hero {
+        padding: 2rem 1rem !important;
+        margin: 0 0.5rem;
+    }
+
+    .landing-title {
+        font-size: 1.9rem; /* still strong, but not giant */
+    }
+
+    .landing-subtitle {
+        font-size: 1rem;
+        max-width: 100%;
+    }
+
+    .landing-cta {
+        display: inline-block;
+        padding: 0.75rem 2.25rem;
+        width: 100%;
+        max-width: 260px;
+    }
+
+    /* ---- My Schedule table: phones only ---- */
+
+    /* Slightly smaller, more compact cells */
+    .schedule-table th,
+    .schedule-table td {
+        padding: 0.25rem 0.35rem;
+        font-size: 0.75rem;
+        white-space: normal; /* allow names to wrap */
+    }
+
+    /* Role column slightly clearer */
+    .schedule-table th.text-start {
+        font-size: 0.78rem;
+    }
+
+    /* Day headers: smaller & allow wrapping */
+    .schedule-table thead th {
+        font-size: 0.75rem;
+        line-height: 1.2;
+        white-space: normal;
+    }
+
+    /* Hide closed-day columns (Sunday & Monday) entirely on phones */
+    .schedule-table col.schedule-closed-day-col {
+        display: none;
+    }
+
+    .schedule-table th.bg-closed,
+    .schedule-table td.bg-closed {
+        display: none;
+    }
+
+    /* Make mobile prev/next buttons a bit smaller */
+    .schedule-header-mobile .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    /* ---- Availability page: employee table (phones) ---- */
+    .availability-table {
+        font-size: 0.9rem;
+    }
+
+    .availability-table th,
+    .availability-table td {
+        padding: 0.4rem 0.5rem;
+        vertical-align: middle;
+    }
+
+    .availability-table th:first-child,
+    .availability-table td:first-child {
+        /* Day column a bit stronger */
+        font-weight: 600;
+    }
+
+    .availability-switch {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .availability-switch .form-check-input {
+        /* Slightly larger tap target */
+        transform: scale(1.15);
+    }
+
+    /* Make the "Save Availability" button span more comfortably */
+    form[action$="/employee/availability"] .btn-primary {
+        margin-top: 0.75rem;
+        min-width: 180px;
+    }
+
+    /* Status / submitted text a bit separated */
+    form[action$="/employee/availability"] .text-success,
+    form[action$="/employee/availability"] .text-warning,
+    form[action$="/employee/availability"] .text-danger {
+        display: inline-block;
+        margin-top: 0.4rem;
+    }
+
+    /* ---- Manager pending section (phones) ---- */
+    .availability-pending h2 {
+        font-size: 1rem;
+    }
+
+    .availability-pending-table {
+        font-size: 0.85rem;
+    }
+
+    .availability-pending-table th,
+    .availability-pending-table td {
+        padding: 0.3rem 0.4rem;
+        vertical-align: top;
+    }
+
+    .availability-pending-inner-table {
+        font-size: 0.8rem;
+    }
+
+    .availability-pending-inner-table th,
+    .availability-pending-inner-table td {
+        padding: 0.2rem 0.3rem;
+    }
+
+    .availability-pending .btn {
+        margin-top: 0.2rem;
+    }
+
+    /* ---- Manager Schedule Builder (phones) ---- */
+
+    .manager-schedule-header-mobile h1 {
+        font-size: 1.2rem;
+    }
+
+    .manager-schedule-header-mobile .text-muted.small {
+        font-size: 0.8rem;
+    }
+
+    .manager-schedule-header-mobile .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .manager-schedule-grid {
+        margin-top: 0.5rem;
+    }
+
+    .manager-day-card .card-body {
+        padding: 0.6rem 0.5rem;
+    }
+
+    .manager-day-card .card-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .manager-day-card .small {
+        font-size: 0.75rem;
+    }
+
+    .manager-day-card .badge {
+        font-size: 0.7rem;
+    }
+
+    /* ---- Manager Day Editor (phones) ---- */
+
+    .manager-day-header-mobile h1 {
+        font-size: 1.2rem;
+    }
+
+    .manager-day-header-mobile .text-muted.small {
+        font-size: 0.8rem;
+    }
+
+    .manager-day-header-mobile .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .manager-day-table {
+        font-size: 0.9rem;
+    }
+
+    .manager-day-table th,
+    .manager-day-table td {
+        padding: 0.4rem 0.45rem;
+        vertical-align: middle;
+    }
+
+    .manager-day-table thead th {
+        font-size: 0.85rem;
+    }
+
+    .manager-day-table .form-select {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.4rem;
+    }
+
+    .manager-day-table .form-check-label.small {
+        font-size: 0.75rem;
+    }
+
+    /* Make Save / Clear buttons stack nicely on narrow screens */
+    .manager-day-actions {
+        margin-top: 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .manager-day-actions .btn {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    /* ---- Requests page: phones ---- */
+
+    .request-card .card-header {
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    .request-card .card-body {
+        padding: 0.75rem 0.85rem;
+    }
+
+    .request-submit-btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .requests-table {
+        font-size: 0.8rem;
+    }
+
+    .requests-table th,
+    .requests-table td {
+        padding: 0.35rem 0.45rem;
+        white-space: nowrap;
+    }
+
+    /* Hide Manager Note column on very small screens to reduce horizontal scroll */
+    .requests-table th.requests-col-note,
+    .requests-table td.requests-col-note {
+        display: none;
+    }
+
+    /* ---- Notifications: phones ---- */
+
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .notifications-header h1 {
+        margin-bottom: 0.25rem;
+    }
+
+    .notifications-user {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .notifications-table {
+        font-size: 0.8rem;
+    }
+
+    .notifications-table th,
+    .notifications-table td {
+        padding: 0.35rem 0.45rem;
+        white-space: nowrap;
+    }
+
+    .notifications-action-col {
+        width: 1%;
+        white-space: nowrap;
+    }
+
+    .notification-action-btn {
+        width: 100%;
+    }
+
+    /* ---- Publish page: phones ---- */
+
+    .publish-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .publish-nav-group {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .publish-nav-btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .publish-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .publish-actions .btn {
+        width: 100%;
+    }
+
+    /* ---- Manager Process page: phones ---- */
+
+    .process-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .process-table {
+        font-size: 0.78rem;
+    }
+
+    .process-table th,
+    .process-table td {
+        padding: 0.25rem 0.35rem;
+        white-space: nowrap;
+    }
+
+    .process-decide-col {
+        min-width: 260px;
+    }
+
+    .process-decide-cell {
+        gap: 0.35rem;
+    }
+
+    /* Hide heavy columns on phones: time + note */
+    .process-table .process-requested-at-col,
+    .process-table .process-note-col {
+        display: none;
+    }
+
+    /* ---- Admin Users list: phones ---- */
+
+    .admin-users-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .admin-users-table {
+        font-size: 0.8rem;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 0.3rem 0.4rem;
+    }
+
+    /* Hide the ID column on phones */
+    .admin-users-table .admin-col-id {
+        display: none;
+    }
+
+    /* Make actions column a bit wider & allow stacking buttons */
+    .admin-users-table .admin-col-actions {
+        min-width: 160px;
+    }
+
+    .admin-actions-wrap {
+        flex-direction: column;
+    }
+
+    .admin-actions-wrap .btn {
+        width: 100%; /* full-width touch targets on phones */
+    }
+
+    /* New user form small tweaks */
+    .admin-new-user-page .form-label {
+        font-size: 0.9rem;
+    }
+
+    .admin-new-user-page .form-text {
+        font-size: 0.8rem;
+    }
+
+}
+
+/* Small tablets / landscape phones (576px–991px) */
+@media (min-width: 576px) and (max-width: 991.98px) {
+
+    /* Slightly tighter container padding than desktop but wider than phones */
+    main.container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    /* Avoid gigantic text on mid-sized screens */
+    .navbar-nav .nav-link {
+        font-size: 0.95rem;
+    }
+
+    /* Landing hero scales a bit down compared to full desktop */
+    .landing-section {
+        padding-top: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .landing-hero {
+        padding: 3rem 2rem !important;
+    }
+
+    .landing-title {
+        font-size: 2.25rem;
+    }
+
+    .landing-subtitle {
+        font-size: 1.05rem;
+    }
+
+    /* Schedule table on small tablets: still a bit tighter than desktop */
+    .schedule-table th,
+    .schedule-table td {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.8rem;
+        white-space: normal;
+    }
+
+    .schedule-table thead th {
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+
+    /* Availability table on small tablets: slightly tighter than desktop */
+    .availability-table {
+        font-size: 0.95rem;
+    }
+
+    .availability-table th,
+    .availability-table td {
+        padding: 0.45rem 0.6rem;
+    }
+
+    .availability-switch .form-check-input {
+        transform: scale(1.1);
+    }
+
+    .availability-pending-table {
+        font-size: 0.9rem;
+    }
+
+    .availability-pending-inner-table {
+        font-size: 0.85rem;
+    }
+
+    /* ---- Manager Schedule Builder (small tablets) ---- */
+
+    .manager-day-card .card-body {
+        padding: 0.75rem 0.7rem;
+    }
+
+    .manager-day-card .card-title {
+        font-size: 1rem;
+    }
+
+    /* ---- Manager Day Editor (small tablets) ---- */
+
+    .manager-day-table {
+        font-size: 0.95rem;
+    }
+
+    .manager-day-table th,
+    .manager-day-table td {
+        padding: 0.45rem 0.6rem;
+    }
+
+    .manager-day-actions .btn {
+        font-size: 0.9rem;
+    }
+
+    /* ---- Requests page: small tablets / landscape phones ---- */
+
+    .requests-table {
+        font-size: 0.85rem;
+    }
+
+    .requests-table th,
+    .requests-table td {
+        padding: 0.4rem 0.55rem;
+    }
+
+    /* ---- Notifications: small tablets / landscape phones ---- */
+
+    .notifications-table {
+        font-size: 0.85rem;
+    }
+
+    .notifications-table th,
+    .notifications-table td {
+        padding: 0.4rem 0.55rem;
+    }
+
+    .notifications-action-col {
+        width: 120px;
+    }
+
+    /* ---- Publish page: small tablets / landscape phones ---- */
+
+    .publish-nav-btn {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.75rem;
+    }
+
+    .publish-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* ---- Manager Process page: tablets ---- */
+
+    .process-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .process-table {
+        font-size: 0.8rem;
+    }
+
+    .process-table th,
+    .process-table td {
+        padding: 0.3rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* ---- Admin Users list: tablets ---- */
+
+    .admin-users-table {
+        font-size: 0.85rem;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 0.35rem 0.5rem;
+    }
+
+    .admin-actions-wrap .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .admin-users-table .admin-col-actions {
+        min-width: 200px;
+    }
+}
+
+/* Manager day editor column widths */
+.manager-day-table .manager-day-col-shift {
+    width: 17%;
+    white-space: nowrap;
+}
+
+.manager-day-table .manager-day-col-role {
+    width: 23%;
+    white-space: nowrap;
+}
+
+.manager-day-table .manager-day-col-assign {
+    width: 60%;
 }

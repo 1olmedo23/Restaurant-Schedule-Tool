@@ -1,6 +1,31 @@
 <th:block th:replace="~{layout :: base(~{::section})}">
     <section>
-        <div class="d-flex align-items-center justify-content-between">
+
+        <!-- Mobile header: phones only -->
+        <div class="manager-day-header-mobile d-flex d-sm-none flex-column align-items-center mb-2">
+            <div class="text-center">
+                <h1 class="h5 mb-0"
+                    th:text="${#temporals.dayOfWeekName(date)} + ' ' + ${#temporals.format(date,'MM/dd/yyyy')}">
+                    Day
+                </h1>
+                <div class="text-muted small mt-1">
+                    <span th:if="${param.saved}">Saved.</span>
+                    <span th:if="${param.cleared}">Cleared.</span>
+                    <span th:if="${error}" th:text="${error}"></span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center gap-2 mt-2">
+                <a class="btn btn-outline-primary me-2"
+                   th:href="@{/manager/schedule-builder}">Back</a>
+                <a class="btn btn-sm btn-outline-secondary"
+                   th:href="@{'/manager/schedule/' + ${#temporals.format(prevDate,'yyyy-MM-dd')}}">Prev</a>
+                <a class="btn btn-sm btn-outline-secondary"
+                   th:href="@{'/manager/schedule/' + ${#temporals.format(nextDate,'yyyy-MM-dd')}}">Next</a>
+            </div>
+        </div>
+
+        <!-- Desktop / tablet header: sm and up -->
+        <div class="d-none d-sm-flex align-items-center justify-content-between">
             <div>
                 <h1 class="h4 mb-0"
                     th:text="${#temporals.dayOfWeekName(date)} + ' ' + ${#temporals.format(date,'MM/dd/yyyy')}">
@@ -13,6 +38,8 @@
                 </div>
             </div>
             <div>
+                <a class="btn btn-outline-primary me-2"
+                   th:href="@{/manager/schedule-builder}">Back</a>
                 <a class="btn btn-outline-secondary me-2"
                    th:href="@{'/manager/schedule/' + ${#temporals.format(prevDate,'yyyy-MM-dd')}}">Prev</a>
                 <a class="btn btn-outline-secondary"
@@ -23,11 +50,11 @@
         <!-- Approved time off badges for this specific day -->
         <div class="mt-3"
              th:if="${timeOffNamesForDay != null and #lists.size(timeOffNamesForDay) > 0}">
-    <span class="badge bg-info text-dark me-1"
-          th:each="n : ${timeOffNamesForDay}"
-          th:text="${'Time off: ' + n}">
-        Time off: Name
-    </span>
+            <span class="badge bg-info text-dark me-1"
+                  th:each="n : ${timeOffNamesForDay}"
+                  th:text="${'Time off: ' + n}">
+                Time off: Name
+            </span>
         </div>
 
         <div th:if="${locked}" class="alert alert-warning mt-3 text-center">
@@ -48,9 +75,13 @@
             <input type="hidden" id="override" name="override" value="0"/>
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle">
+                <table class="table table-bordered align-middle manager-day-table">
                     <thead class="table-light">
-                    <tr><th style="width:120px;">Shift</th><th style="width:160px;">Role</th><th>Assign</th></tr>
+                    <tr>
+                        <th class="manager-day-col-shift">Shift</th>
+                        <th class="manager-day-col-role">Role</th>
+                        <th class="manager-day-col-assign">Assign</th>
+                    </tr>
                     </thead>
                     <tbody>
                     <!-- LUNCH -->
@@ -176,7 +207,7 @@
             </div>
 
             <!-- Buttons when NOT locked -->
-            <div class="d-flex gap-2" th:if="${!locked}">
+            <div class="d-flex gap-2 manager-day-actions" th:if="${!locked}">
                 <button class="btn btn-primary"
                         type="submit"
                         name="action"
@@ -194,7 +225,7 @@
             </div>
 
             <!-- Buttons when locked (force override=1) -->
-            <div class="d-flex gap-2" th:if="${locked}">
+            <div class="d-flex gap-2 manager-day-actions" th:if="${locked}">
                 <button type="submit"
                         class="btn btn-warning"
                         name="action"

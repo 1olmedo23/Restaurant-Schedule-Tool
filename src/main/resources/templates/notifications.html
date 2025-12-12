@@ -1,9 +1,9 @@
 <th:block th:with="active='notifications'"
           th:replace="~{layout :: base(~{::section})}">
     <section>
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 notifications-header">
             <h1 class="h4 mb-0">Notifications</h1>
-            <div class="text-muted small">
+            <div class="text-muted small notifications-user">
                 <span th:text="${me.fullName}">User</span>
             </div>
         </div>
@@ -16,13 +16,12 @@
         <div th:if="${!#lists.isEmpty(unread)}" class="mb-4">
             <h2 class="h6 mb-2">Unread</h2>
             <div class="table-responsive">
-                <table class="table table-sm align-middle">
+                <table class="table table-sm align-middle notifications-table">
                     <thead>
                     <tr>
                         <!--<th>Type</th>-->
-                        <th>Date</th>
                         <th>Message</th>
-                        <th style="width: 150px;">Action</th>
+                        <th class="notifications-action-col">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -32,16 +31,13 @@
                             Type
                         </td>-->
 
-                        <!-- Date as MM-DD-YY (swap n.createdAt if your field name differs) -->
-                        <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">
-                            11-21-25
-                        </td>
-
                         <td th:text="${n.payload}">Notification text</td>
                         <td>
                             <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button class="btn btn-sm btn-outline-secondary">Mark as read</button>
+                                <button class="btn btn-sm btn-outline-secondary notification-action-btn">
+                                    Mark as read
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -57,11 +53,10 @@
         </div>
 
         <div th:if="${!#lists.isEmpty(read)}" class="table-responsive">
-            <table class="table table-sm align-middle">
+            <table class="table table-sm align-middle notifications-table">
                 <thead>
                 <tr>
                     <!--<th>Type</th>-->
-                    <th>Date</th>
                     <th>Message</th>
                 </tr>
                 </thead>
@@ -71,11 +66,6 @@
                     <!--<td th:text="${#strings.capitalize(#strings.replace(n.type.toString().toLowerCase(), '_', ' '))}">
                         Type
                     </td>-->
-
-                    <!-- Date as MM-DD-YY -->
-                    <td th:text="${#temporals.format(n.createdAt, 'MM-dd-yy')}">
-                        11-21-25
-                    </td>
 
                     <td th:text="${n.payload}">Notification text</td>
                 </tr>

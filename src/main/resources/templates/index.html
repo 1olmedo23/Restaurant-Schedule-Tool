@@ -1,13 +1,18 @@
 <th:block th:with="active=''"
           th:replace="~{layout :: base(~{::section})}">
-    <section>
-        <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
+    <section class="landing-section">
+        <div class="p-5 mb-4 bg-white rounded-3 shadow-sm landing-hero">
             <div class="container-fluid py-5 text-center">
-                <h1 class="display-5 fw-bold">Welcome to SKT Scheduler</h1>
-                <p class="fs-5 mx-auto" style="max-width: 600px;">
+                <h1 class="display-5 fw-bold landing-title">
+                    Welcome to <br> SKT Scheduler
+                </h1>
+                <p class="fs-5 mx-auto landing-subtitle" style="max-width: 600px;">
                     Keeping everyone on the same page.
                 </p>
-                <a class="btn btn-primary btn-lg mt-3" th:href="@{/login}">Login</a>
+                <a class="btn btn-primary btn-lg mt-3 landing-cta"
+                   th:href="@{/login}">
+                    Login
+                </a>
             </div>
         </div>
     </section>

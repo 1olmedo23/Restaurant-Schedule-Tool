@@ -1,7 +1,14 @@
 <!-- schedule table fragment -->
 <th:block th:fragment="scheduleTable(weekDays)">
     <div class="table-responsive">
-        <table class="table table-bordered align-middle text-center">
+        <table class="table table-bordered align-middle text-center schedule-table">
+            <colgroup>
+                <col class="schedule-role-col">
+                <col th:each="d : ${weekDays}"
+                     th:classappend="${
+                 #temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7
+             } ? ' schedule-closed-day-col' : ''">
+            </colgroup>
             <thead class="table-secondary fw-semibold">
             <tr>
                 <th class="fw-semibold">Role \ Day</th>
