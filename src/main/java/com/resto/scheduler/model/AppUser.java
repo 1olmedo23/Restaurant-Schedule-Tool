@@ -27,6 +27,9 @@ public class AppUser {
     @Email
     private String email;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
     private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -50,4 +53,6 @@ public class AppUser {
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public Set<Role> getRoles() { return roles; }
     public void setRoles(Set<Role> roles) { this.roles = roles; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 }

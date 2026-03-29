@@ -8,6 +8,8 @@ import com.resto.scheduler.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.resto.scheduler.model.enums.ShiftPeriod;
+import com.resto.scheduler.service.NotificationDeliveryService;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,10 +22,13 @@ public class RequestService {
 
     private final RequestRepository requestRepo;
     private final AssignmentRepository assignmentRepo;
-    private final NotificationRepository notificationRepo;
+    private final NotificationDeliveryService notificationDeliveryService;
     private final SchedulePeriodRepository schedulePeriodRepo;
     private final AmendmentRepository amendmentRepo;
     private final AppUserRepository userRepo;
+
+    @Value("${app.public-login-url}")
+    private String publicLoginUrl;
 
     // for “open” checks if you want later
     private static final List<RequestStatus> OPEN_STATUSES =
@@ -34,13 +39,13 @@ public class RequestService {
 
     public RequestService(RequestRepository requestRepo,
                           AssignmentRepository assignmentRepo,
-                          NotificationRepository notificationRepo,
+                          NotificationDeliveryService notificationDeliveryService,
                           SchedulePeriodRepository schedulePeriodRepo,
                           AmendmentRepository amendmentRepo,
                           AppUserRepository userRepo) {
         this.requestRepo = requestRepo;
         this.assignmentRepo = assignmentRepo;
-        this.notificationRepo = notificationRepo;
+        this.notificationDeliveryService = notificationDeliveryService;
         this.schedulePeriodRepo = schedulePeriodRepo;
         this.amendmentRepo = amendmentRepo;
         this.userRepo = userRepo;
@@ -223,11 +228,23 @@ public class RequestService {
         }
 
         // Notifications
-        notify(request.getRequester(), NotificationType.TRADE_DECISION,
-                label(request) + " approved" + (note != null && !note.isBlank() ? (": " + note) : ""));
+        String payload = label(request) + " approved" + (note != null && !note.isBlank() ? (": " + note) : "");
+        String smsMessage = buildDecisionSmsMessage(request, true, note);
+
+        notificationDeliveryService.notifyInAppAndSms(
+                request.getRequester(),
+                NotificationType.TRADE_DECISION,
+                payload,
+                smsMessage
+        );
+
         if (request.getReceiver() != null) {
-            notify(request.getReceiver(), NotificationType.TRADE_DECISION,
-                    label(request) + " approved" + (note != null && !note.isBlank() ? (": " + note) : ""));
+            notificationDeliveryService.notifyInAppAndSms(
+                    request.getReceiver(),
+                    NotificationType.TRADE_DECISION,
+                    payload,
+                    smsMessage
+            );
         }
         return saved;
     }
@@ -240,11 +257,23 @@ public class RequestService {
         request.setNote(note);
         Request saved = requestRepo.save(request);
 
-        notify(request.getRequester(), NotificationType.TRADE_DECISION,
-                label(request) + " denied" + (note != null && !note.isBlank() ? (": " + note) : ""));
+        String payload = label(request) + " denied" + (note != null && !note.isBlank() ? (": " + note) : "");
+        String smsMessage = buildDecisionSmsMessage(request, false, note);
+
+        notificationDeliveryService.notifyInAppAndSms(
+                request.getRequester(),
+                NotificationType.TRADE_DECISION,
+                payload,
+                smsMessage
+        );
+
         if (request.getReceiver() != null) {
-            notify(request.getReceiver(), NotificationType.TRADE_DECISION,
-                    label(request) + " denied" + (note != null && !note.isBlank() ? (": " + note) : ""));
+            notificationDeliveryService.notifyInAppAndSms(
+                    request.getReceiver(),
+                    NotificationType.TRADE_DECISION,
+                    payload,
+                    smsMessage
+            );
         }
         return saved;
     }
@@ -359,11 +388,28 @@ public class RequestService {
         return names.stream().anyMatch(n -> n.equals(full));
     }
 
+    private String buildDecisionSmsMessage(Request request, boolean approved, String note) {
+        String action = approved ? "approved" : "denied";
+        String requestLabel = request.getType() == RequestType.TRADE ? "trade request" : "time off request";
+        String dateStr = REQ_DATE_FMT.format(request.getRequestDate());
+
+        StringBuilder sms = new StringBuilder();
+        sms.append("SKT Scheduler: Your ")
+                .append(requestLabel)
+                .append(" for ")
+                .append(dateStr)
+                .append(" was ")
+                .append(action);
+
+        if (note != null && !note.isBlank()) {
+            sms.append(". Note: ").append(note.trim());
+        }
+
+        sms.append(". View details: ").append(publicLoginUrl);
+        return sms.toString();
+    }
+
     private void notify(AppUser recipient, NotificationType type, String payload) {
-        Notification n = new Notification();
-        n.setRecipient(recipient);
-        n.setType(type);
-        n.setPayload(payload);
-        notificationRepo.save(n);
+        notificationDeliveryService.notifyInApp(recipient, type, payload);
     }
 }

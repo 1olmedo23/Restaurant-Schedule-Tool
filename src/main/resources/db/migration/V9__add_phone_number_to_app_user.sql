@@ -1,0 +1,2 @@
+ALTER TABLE app_user
+    ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20);
