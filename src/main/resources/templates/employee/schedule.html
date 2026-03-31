@@ -12,60 +12,115 @@
             </div>
 
             <!-- Mobile header: phones only -->
-            <div class="schedule-header-mobile d-flex d-sm-none flex-column align-items-center mb-2">
-                <div class="text-center">
-                    <h1 class="h5 mb-0">
-                        My Schedule <span th:if="${isPosted}">(Posted)</span>
+            <div class="schedule-header-mobile d-sm-none mb-3">
+                <div class="schedule-title-card">
+
+                    <div class="schedule-title-kicker">Schedule</div>
+
+                    <h1 class="schedule-title-main mb-1 text-center">
+                        My Schedule <span th:if="${isPosted}" class="schedule-posted-pill">Posted</span>
                     </h1>
-                    <div class="text-muted small">
-                        <strong th:text="${#temporals.format(startDate, 'MM-dd-yy')}">MM-DD-YY</strong>
-                        &nbsp;→&nbsp;
-                        <strong th:text="${#temporals.format(endDate, 'MM-dd-yy')}">MM-DD-YY</strong>
+
+                    <div class="schedule-title-dates text-center">
+                        <strong th:text="${#temporals.format(startDate, 'MM/dd')}">MM-DD-YY</strong>
+                        &nbsp;To&nbsp;
+                        <strong th:text="${#temporals.format(endDate, 'MM/dd')}">MM-DD-YY</strong>
                     </div>
-                </div>
-                <div class="d-flex justify-content-center gap-2 mt-2">
-                    <a th:if="${prevStart != null}"
-                       th:href="@{/employee/schedule(start=${prevStart})}"
-                       class="btn btn-sm btn-outline-secondary">
-                        ◀ Prev
-                    </a>
-                    <a th:if="${nextStart != null}"
-                       th:href="@{/employee/schedule(start=${nextStart})}"
-                       class="btn btn-sm btn-outline-secondary">
-                        Next ▶
-                    </a>
+
+                    <!-- NAV INSIDE CARD -->
+                    <div class="schedule-mobile-nav mt-2">
+                        <div class="schedule-mobile-nav-side schedule-mobile-nav-left">
+                            <a th:if="${viewMode == 'full' and prevStart != null}"
+                               th:href="@{/employee/schedule(start=${prevStart}, view=${viewMode}, day=${selectedDate})}"
+                               class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                                Prev Schedule
+                            </a>
+                        </div>
+
+                        <div class="schedule-mobile-nav-center">
+                            <a th:href="@{/employee/schedule(view=${viewMode})}"
+                               class="btn btn-sm btn-primary schedule-nav-btn schedule-today-btn">
+                                Today
+                            </a>
+                        </div>
+
+                        <div class="schedule-mobile-nav-side schedule-mobile-nav-right">
+                            <a th:if="${viewMode == 'full' and nextStart != null}"
+                               th:href="@{/employee/schedule(start=${nextStart}, view=${viewMode}, day=${selectedDate})}"
+                               class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                                Next Schedule
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
             <!-- Desktop / tablet header: sm and up -->
-            <div class="d-none d-sm-flex align-items-center justify-content-between mb-2">
-                <a th:if="${prevStart != null}"
-                   th:href="@{/employee/schedule(start=${prevStart})}"
-                   class="btn btn-sm btn-outline-secondary">◀ Previous two weeks</a>
-                <span th:if="${prevStart == null}"></span>
+            <div class="d-none d-sm-block mb-3">
+                <div class="schedule-title-card schedule-title-card-desktop">
+                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                        <div>
+                            <div class="schedule-title-kicker">Schedule</div>
+                            <h1 class="schedule-title-main mb-1">
+                                My Schedule <span th:if="${isPosted}" class="schedule-posted-pill">Posted</span>
+                            </h1>
+                            <div class="schedule-title-dates">
+                                <strong th:text="${#temporals.format(startDate, 'MM/dd')}">MM-DD-YY</strong>
+                                &nbsp;To&nbsp;
+                                <strong th:text="${#temporals.format(endDate, 'MM/dd')}">MM-DD-YY</strong>
+                            </div>
+                        </div>
 
-                <div class="text-center flex-grow-1">
-                    <h1 class="h5 mb-0">
-                        My Schedule <span th:if="${isPosted}">(Posted)</span>
-                    </h1>
-                    <div class="text-muted small">
-                        <strong th:text="${#temporals.format(startDate, 'MM-dd-yy')}">MM-DD-YY</strong>
-                        &nbsp;→&nbsp;
-                        <strong th:text="${#temporals.format(endDate, 'MM-dd-yy')}">MM-DD-YY</strong>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a th:if="${viewMode == 'full' and prevStart != null}"
+                               th:href="@{/employee/schedule(start=${prevStart}, view=${viewMode}, day=${selectedDate})}"
+                               class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                                Previous Schedule
+                            </a>
+
+                            <a th:href="@{/employee/schedule(view=${viewMode})}"
+                               class="btn btn-sm btn-primary schedule-nav-btn schedule-today-btn">
+                                Today
+                            </a>
+
+                            <a th:if="${viewMode == 'full' and nextStart != null}"
+                               th:href="@{/employee/schedule(start=${nextStart}, view=${viewMode}, day=${selectedDate})}"
+                               class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                                Next Schedule
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                <a th:if="${nextStart != null}"
-                   th:href="@{/employee/schedule(start=${nextStart})}"
-                   class="btn btn-sm btn-outline-secondary">Next two weeks ▶</a>
-                <span th:if="${nextStart == null}"></span>
             </div>
 
-            <h2 class="h6 mt-3">Week 1</h2>
-            <div th:replace="~{fragments/schedule-table :: scheduleTable(${week1})}"></div>
+            <!-- View toggle -->
+            <div class="d-flex justify-content-center mb-3">
+                <div class="schedule-view-toggle">
+                    <a th:href="@{/employee/schedule(start=${startDate}, view='day', day=${selectedDate})}"
+                       th:class="'btn btn-sm ' + (${viewMode} == 'day' ? 'btn-primary' : 'btn-outline-primary')">
+                        Day view
+                    </a>
+                    <a th:href="@{/employee/schedule(start=${startDate}, view='full', day=${selectedDate})}"
+                       th:class="'btn btn-sm ' + (${viewMode} == 'full' ? 'btn-primary' : 'btn-outline-primary')">
+                        Full schedule
+                    </a>
+                </div>
+            </div>
 
-            <h2 class="h6 mt-4">Week 2</h2>
-            <div th:replace="~{fragments/schedule-table :: scheduleTable(${week2})}"></div>
+            <!-- DAY VIEW ONLY -->
+            <div th:if="${viewMode == 'day'}">
+                <div th:replace="~{fragments/schedule-table :: scheduleDayCard(${selectedDate})}"></div>
+            </div>
+
+            <!-- FULL VIEW ONLY -->
+            <div th:if="${viewMode == 'full'}">
+                <h2 class="h6 mt-3">Week 1</h2>
+                <div th:replace="~{fragments/schedule-table :: scheduleTable(${week1})}"></div>
+
+                <h2 class="h6 mt-4">Week 2</h2>
+                <div th:replace="~{fragments/schedule-table :: scheduleTable(${week2})}"></div>
+            </div>
         </div>
     </section>
 </th:block>

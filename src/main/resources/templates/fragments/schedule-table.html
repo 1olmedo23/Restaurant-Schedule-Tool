@@ -1,4 +1,257 @@
-<!-- schedule table fragment -->
+<!-- Day card fragment -->
+<th:block th:fragment="scheduleDayCard(selectedDate)">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="schedule-day-header mb-3">
+
+                <!-- LEFT -->
+                <div class="schedule-day-nav-left">
+                    <a th:if="${prevSelectedDate != null}"
+                       th:href="@{/employee/schedule(start=${startDate}, view='day', day=${prevSelectedDate})}"
+                       class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                        Prev Day
+                    </a>
+                </div>
+
+                <!-- CENTER -->
+                <div class="schedule-day-center">
+                    <div class="text-muted small text-uppercase fw-semibold"
+                         th:text="${selectedDate.equals(#temporals.createNow().toLocalDate()) ? 'Today''s Shifts' : 'Selected day'}">
+                        Today's Shifts
+                    </div>
+
+                    <h2 class="h5 mb-1"
+                        th:text="${#temporals.dayOfWeekName(selectedDate)} + ' ' + ${#temporals.format(selectedDate, 'MM/dd')}">
+                        Day
+                    </h2>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="schedule-day-nav-right">
+                    <a th:if="${nextSelectedDate != null}"
+                       th:href="@{/employee/schedule(start=${startDate}, view='day', day=${nextSelectedDate})}"
+                       class="btn btn-sm btn-outline-secondary schedule-nav-btn">
+                        Next Day
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="alert alert-light border mb-0"
+                 th:if="${#temporals.dayOfWeek(selectedDate) == 1 or #temporals.dayOfWeek(selectedDate) == 7}">
+                Closed today.
+            </div>
+
+            <div th:if="${!(#temporals.dayOfWeek(selectedDate) == 1 or #temporals.dayOfWeek(selectedDate) == 7)}"
+                 th:with="todayKey=${#temporals.format(selectedDate,'yyyy-MM-dd')}">
+
+                <!-- Lunch -->
+                <div class="mb-3">
+                    <div class="fw-bold text-uppercase small text-muted mb-2">Lunch</div>
+
+                    <div class="list-group list-group-flush border rounded">
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('LUNCH_LUNCH_SERVER') : null}">
+                            <div>
+                                <div class="fw-semibold">Server</div>
+                                <div class="small text-muted">11:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('LUNCH_LUNCH_ASSISTANT') : null}">
+                            <div>
+                                <div class="fw-semibold">Assistant</div>
+                                <div class="small text-muted">11:30</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('LUNCH_LUNCH_MANAGER') : null}">
+                            <div>
+                                <div class="fw-semibold">Manager</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dinner -->
+                <div>
+                    <div class="fw-bold text-uppercase small text-muted mb-2">Dinner</div>
+
+                    <div class="list-group list-group-flush border rounded">
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_SERVER_1') : null}">
+                            <div>
+                                <div class="fw-semibold">Server 1</div>
+                                <div class="small text-muted">4:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_SERVER_2') : null}">
+                            <div>
+                                <div class="fw-semibold">Server 2</div>
+                                <div class="small text-muted">4:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_SUSHI') : null}">
+                            <div>
+                                <div class="fw-semibold">Sushi</div>
+                                <div class="small text-muted">4:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_EXPO') : null}">
+                            <div>
+                                <div class="fw-semibold">Expo</div>
+                                <div class="small text-muted">4:15</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_BUSSER_1') : null}">
+                            <div>
+                                <div class="fw-semibold">Busser 1</div>
+                                <div class="small text-muted">5:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_BUSSER_2') : null}">
+                            <div>
+                                <div class="fw-semibold">Busser 2</div>
+                                <div class="small text-muted">5:00</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_HOST_1') : null}">
+                            <div>
+                                <div class="fw-semibold">Host 1</div>
+                                <div class="small text-muted">4:15</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_HOST_2') : null}">
+                            <div>
+                                <div class="fw-semibold">Host 2</div>
+                                <div class="small text-muted">4:45</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="list-group-item d-flex justify-content-between align-items-center"
+                             th:with="asg=${assignmentsGrid != null and assignmentsGrid.containsKey(todayKey) ? assignmentsGrid.get(todayKey).get('DINNER_FLOAT') : null}">
+                            <div>
+                                <div class="fw-semibold">FLOAT</div>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${asg != null}"
+                                      th:text="${asg.employee.fullName != null and !#strings.isEmpty(asg.employee.fullName) ? asg.employee.fullName : asg.employee.username}"
+                                      th:classappend="${highlightCurrentUser != null and highlightCurrentUser and asg.employee.username == #authentication.name} ? ' schedule-name-current' : ''">
+                                    —
+                                </span>
+                                <span th:unless="${asg != null}">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
 <th:block th:fragment="scheduleTable(weekDays)">
     <div class="table-responsive">
         <table class="table table-bordered align-middle text-center schedule-table">

@@ -175,6 +175,11 @@ public class EmployeeController {
           @RequestParam(value = "start", required = false)
           @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
           LocalDate start,
+          @RequestParam(value = "view", required = false, defaultValue = "day")
+          String view,
+          @RequestParam(value = "day", required = false)
+          @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+          LocalDate day,
           Model model
   ) {
     model.addAttribute("active", "employee-schedule");
@@ -243,6 +248,27 @@ public class EmployeeController {
     LocalDate prevStart = periodStart.minusDays(14);
     LocalDate nextStart = periodStart.plusDays(14);
 
+    String viewMode = "full".equalsIgnoreCase(view) ? "full" : "day";
+
+    LocalDate today = LocalDate.now();
+    LocalDate defaultSelectedDate =
+            (!today.isBefore(periodStart) && !today.isAfter(endInclusive))
+                    ? today
+                    : periodStart;
+
+    LocalDate selectedDate =
+            (day != null && !day.isBefore(periodStart) && !day.isAfter(endInclusive))
+                    ? day
+                    : defaultSelectedDate;
+
+    LocalDate prevSelectedDate = selectedDate.isAfter(periodStart)
+            ? selectedDate.minusDays(1)
+            : null;
+
+    LocalDate nextSelectedDate = selectedDate.isBefore(endInclusive)
+            ? selectedDate.plusDays(1)
+            : null;
+
     model.addAttribute("hasPeriods", true);
     model.addAttribute("isPosted", isPosted);
     model.addAttribute("anyPosted", anyPosted);
@@ -256,6 +282,11 @@ public class EmployeeController {
 
     model.addAttribute("prevStart", prevStart);
     model.addAttribute("nextStart", nextStart);
+
+    model.addAttribute("viewMode", viewMode);
+    model.addAttribute("selectedDate", selectedDate);
+    model.addAttribute("prevSelectedDate", prevSelectedDate);
+    model.addAttribute("nextSelectedDate", nextSelectedDate);
 
     model.addAttribute("highlightCurrentUser", true);
 
