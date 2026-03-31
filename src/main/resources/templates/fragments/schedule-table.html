@@ -28,7 +28,7 @@
 
             <!-- Lunch: Server -->
             <tr>
-                <th class="text-start fw-semibold">Server</th>
+                <th class="text-start fw-semibold">Server<div class="schedule-role-time">11:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -50,7 +50,7 @@
 
             <!-- Lunch: Assistant -->
             <tr>
-                <th class="text-start fw-semibold">Assistant</th>
+                <th class="text-start fw-semibold">Assistant<div class="schedule-role-time">11:30</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -94,7 +94,7 @@
 
             <!-- Dinner: Server 1 -->
             <tr>
-                <th class="text-start fw-semibold">Server 1</th>
+                <th class="text-start fw-semibold">Server 1<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -115,7 +115,7 @@
 
             <!-- Dinner: Server 2 -->
             <tr>
-                <th class="text-start fw-semibold">Server 2</th>
+                <th class="text-start fw-semibold">Server 2<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -156,7 +156,7 @@
 
             <!-- Dinner: Sushi -->
             <tr>
-                <th class="text-start fw-semibold">Sushi</th>
+                <th class="text-start fw-semibold">Sushi<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -183,7 +183,7 @@
 
             <!-- Dinner: Expo -->
             <tr>
-                <th class="text-start fw-semibold">Expo</th>
+                <th class="text-start fw-semibold">Expo<div class="schedule-role-time">4:15</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -204,7 +204,7 @@
 
             <!-- Dinner: Busser 1 -->
             <tr>
-                <th class="text-start fw-semibold">Busser 1</th>
+                <th class="text-start fw-semibold">Busser 1<div class="schedule-role-time">5:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -225,7 +225,7 @@
 
             <!-- Dinner: Busser 2 -->
             <tr>
-                <th class="text-start fw-semibold">Busser 2</th>
+                <th class="text-start fw-semibold">Busser 2<div class="schedule-role-time">5:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -246,7 +246,7 @@
 
             <!-- Dinner: Host 1 -->
             <tr>
-                <th class="text-start fw-semibold">Host 1</th>
+                <th class="text-start fw-semibold">Host 1<div class="schedule-role-time">4:15</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
@@ -267,7 +267,7 @@
 
             <!-- Dinner: Host 2 -->
             <tr>
-                <th class="text-start fw-semibold">Host 2</th>
+                <th class="text-start fw-semibold">Host 2<div class="schedule-role-time">4:45</div></th>
                 <td th:each="d : ${weekDays}"
                     th:classappend="${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
