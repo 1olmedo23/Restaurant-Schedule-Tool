@@ -51,4 +51,9 @@ public class HomeController {
     }
     return "redirect:/employee/schedule";
   }
+
+  @GetMapping("/sms-policy")
+  public String smsPolicy() {
+    return "sms-policy";
+  }
 }
