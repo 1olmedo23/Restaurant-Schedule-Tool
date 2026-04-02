@@ -208,6 +208,56 @@ public class ManagerController {
       }
     });
 
+    Map<String, String> savedDisplayNames = new HashMap<>();
+    assignmentRepo.findByShift_Date(target).forEach(a -> {
+      Position pos = a.getShift().getPosition();
+      ShiftPeriod per = a.getShift().getPeriod();
+
+      String key = switch (per) {
+        case LUNCH -> switch (pos) {
+          case LUNCH_SERVER -> "role_LUNCH_SERVER";
+          case LUNCH_ASSISTANT -> "role_LUNCH_ASSISTANT";
+          case LUNCH_MANAGER -> "role_LUNCH_MANAGER";
+          default -> null;
+        };
+        case DINNER -> switch (pos) {
+          case SERVER_1 -> "role_DINNER_SERVER_1";
+          case SERVER_2 -> "role_DINNER_SERVER_2";
+          case SERVER_3 -> "role_DINNER_SERVER_3";
+          case SUSHI    -> "role_DINNER_SUSHI";
+          case EXPO     -> "role_DINNER_EXPO";
+          case BUSSER_1 -> "role_DINNER_BUSSER_1";
+          case BUSSER_2 -> "role_DINNER_BUSSER_2";
+          case HOST_1   -> "role_DINNER_HOST_1";
+          case HOST_2   -> "role_DINNER_HOST_2";
+          case FLOAT    -> "role_DINNER_FLOAT";
+          default -> null;
+        };
+      };
+
+      if (key != null && a.getEmployee() != null) {
+        String displayName = (a.getEmployee().getFullName() != null && !a.getEmployee().getFullName().isBlank())
+                ? a.getEmployee().getFullName()
+                : a.getEmployee().getUsername();
+        savedDisplayNames.put(key, displayName);
+      }
+    });
+
+    Set<String> availableLunchManagerUsernames = new HashSet<>();
+    for (AppUser u : availLunchManagers) {
+      availableLunchManagerUsernames.add(u.getUsername());
+    }
+
+    Set<String> availableLunchStaffUsernames = new HashSet<>();
+    for (AppUser u : availableLunchStaff) {
+      availableLunchStaffUsernames.add(u.getUsername());
+    }
+
+    Set<String> availableDinnerStaffUsernames = new HashSet<>();
+    for (AppUser u : availableDinnerStaff) {
+      availableDinnerStaffUsernames.add(u.getUsername());
+    }
+
     // Remove users who have approved time off that day
     // The override lists (allStaff, allManagers) should still show them.
     availableLunchStaff.removeIf(u -> requestService.hasApprovedTimeOff(u, target));
@@ -266,6 +316,11 @@ public class ManagerController {
 
     model.addAttribute("saved", saved);
     model.addAttribute("active", "manager-schedule");
+
+    model.addAttribute("savedDisplayNames", savedDisplayNames);
+    model.addAttribute("availableLunchManagerUsernames", availableLunchManagerUsernames);
+    model.addAttribute("availableLunchStaffUsernames", availableLunchStaffUsernames);
+    model.addAttribute("availableDinnerStaffUsernames", availableDinnerStaffUsernames);
 
     model.addAttribute("locked", isLocked(target)); // lock if any POSTED period contains this date
     return "manager/day";

@@ -97,6 +97,15 @@
                                     th:name="${role.key()}">
                                 <option value="">— Select —</option>
 
+                                <!-- Show saved unavailable assignee so the dropdown reflects what is actually saved -->
+                                <option th:if="${saved[role.key()] != null
+                                                and ((role.key() == 'role_LUNCH_MANAGER' and !availableLunchManagerUsernames.contains(saved[role.key()]))
+                                                or (role.key() != 'role_LUNCH_MANAGER' and !availableLunchStaffUsernames.contains(saved[role.key()]))) }"
+                                        th:value="${saved[role.key()]}"
+                                        th:text="${savedDisplayNames[role.key()] + ' (saved override)'}"
+                                        selected>
+                                </option>
+
                                 <!-- Manager role: managers only (available) -->
                                 <option th:if="${role.key() == 'role_LUNCH_MANAGER'}"
                                         th:each="u : ${availableLunchManagers}"
@@ -167,6 +176,15 @@
                                     th:id="${role.key()} + '_filtered'"
                                     th:name="${role.key()}">
                                 <option value="">— Select —</option>
+
+                                <!-- Show saved unavailable assignee so the dropdown reflects what is actually saved -->
+                                <option th:if="${saved[role.key()] != null
+                                                and !availableDinnerStaffUsernames.contains(saved[role.key()])}"
+                                        th:value="${saved[role.key()]}"
+                                        th:text="${savedDisplayNames[role.key()] + ' (saved override)'}"
+                                        selected>
+                                </option>
+
                                 <option th:each="u : ${availableDinnerStaff}"
                                         th:value="${u.username}"
                                         th:text="${u.fullName}"
