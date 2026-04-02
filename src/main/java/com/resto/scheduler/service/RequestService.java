@@ -299,25 +299,36 @@ public class RequestService {
         }
 
         Shift shift = offer.getShift();
-        LocalDate date = shift.getDate();
+        if (shift == null) {
+            return;
+        }
 
+        LocalDate date = shift.getDate();
         AppUser original = offer.getEmployee();
 
-        // 1) Reassign to receiver
+        // 1) Reassign the live assignment to the receiver
         offer.setEmployee(r.getReceiver());
         assignmentRepo.save(offer);
 
-        // 2) If the date is in a POSTED period, record an Amendment and attach that period
+        // 2) If this date belongs to a POSTED period, upsert the amendment
         schedulePeriodRepo.findPostedContaining(date).ifPresent(period -> {
-            Amendment a = new Amendment();
-            a.setSchedulePeriod(period);          // IMPORTANT: link to SchedulePeriod (NOT NULL in DB)
-            a.setDate(date);
-            a.setPeriod(shift.getPeriod());
-            a.setPosition(shift.getPosition());
-            a.setOriginalEmployee(original);
-            a.setNewEmployee(r.getReceiver());
-            // changedAt / changedBy are handled by your entity annotations / defaults, so we don't touch them here
-            amendmentRepo.save(a);
+            Amendment amendment = amendmentRepo
+                    .findBySchedulePeriod_IdAndDateAndPeriodAndPosition(
+                            period.getId(),
+                            date,
+                            shift.getPeriod(),
+                            shift.getPosition()
+                    )
+                    .orElseGet(Amendment::new);
+
+            amendment.setSchedulePeriod(period);
+            amendment.setDate(date);
+            amendment.setPeriod(shift.getPeriod());
+            amendment.setPosition(shift.getPosition());
+            amendment.setOriginalEmployee(original);
+            amendment.setNewEmployee(r.getReceiver());
+
+            amendmentRepo.save(amendment);
         });
     }
 
