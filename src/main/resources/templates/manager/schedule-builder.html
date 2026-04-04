@@ -5,7 +5,7 @@
         <!-- Mobile header: phones only -->
         <div class="manager-schedule-header-mobile d-flex d-sm-none flex-column align-items-center mb-2">
             <div class="text-center">
-                <h1 class="h5 mb-0">Schedule Builder (2 Weeks)</h1>
+                <h1 class="h5 mb-0">Schedule Builder</h1>
                 <div class="text-muted small">
                     <strong th:text="${#temporals.format(windowStart,'MM/dd/yy')}">MM/DD/YY</strong>
                     &nbsp;→&nbsp;
@@ -15,11 +15,11 @@
             <div class="d-flex justify-content-center gap-2 mt-2">
                 <a th:href="@{/manager/schedule-builder(start=${prevStart})}"
                    class="btn btn-sm btn-outline-secondary">
-                    ◀ Prev
+                    Prev
                 </a>
                 <a th:href="@{/manager/schedule-builder(start=${nextStart})}"
                    class="btn btn-sm btn-outline-secondary">
-                    Next ▶
+                    Next
                 </a>
                 <a th:href="@{/manager/schedule-builder}"
                    class="btn btn-sm btn-primary">
@@ -31,10 +31,10 @@
         <!-- Desktop / tablet header: sm and up -->
         <div class="d-none d-sm-flex align-items-center justify-content-between mb-3">
             <a th:href="@{/manager/schedule-builder(start=${prevStart})}"
-               class="btn btn-sm btn-outline-secondary">◀ Previous 2 weeks</a>
+               class="btn btn-sm btn-outline-secondary">Prev 2 weeks</a>
 
             <div class="text-center flex-grow-1">
-                <h1 class="h4 mb-0">Schedule Builder (2 Weeks)</h1>
+                <h1 class="h4 mb-0">Schedule Builder</h1>
                 <div class="text-muted small">
                     <strong th:text="${#temporals.format(windowStart,'MM/dd/yy')}">MM/DD/YY</strong>
                     &nbsp;→&nbsp;
@@ -44,7 +44,7 @@
 
             <div class="d-flex gap-2">
                 <a th:href="@{/manager/schedule-builder(start=${nextStart})}"
-                   class="btn btn-sm btn-outline-secondary">Next 2 weeks ▶</a>
+                   class="btn btn-sm btn-outline-secondary">Next 2 weeks</a>
                 <!-- Today button: no start param = jumps to the window containing today -->
                 <a th:href="@{/manager/schedule-builder}"
                    class="btn btn-sm btn-primary">Today</a>
