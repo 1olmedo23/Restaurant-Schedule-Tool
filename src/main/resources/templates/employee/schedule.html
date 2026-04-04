@@ -21,11 +21,11 @@
                         My Schedule <span th:if="${isPosted}" class="schedule-posted-pill">Posted</span>
                     </h1>
 
-                    <div class="schedule-title-dates text-center">
+                    <!-- <div class="schedule-title-dates text-center">
                         <strong th:text="${#temporals.format(startDate, 'MM/dd')}">MM-DD-YY</strong>
                         &nbsp;To&nbsp;
                         <strong th:text="${#temporals.format(endDate, 'MM/dd')}">MM-DD-YY</strong>
-                    </div>
+                    </div> -->
 
                     <!-- NAV INSIDE CARD -->
                     <div class="schedule-mobile-nav mt-2">
@@ -61,15 +61,17 @@
                 <div class="schedule-title-card schedule-title-card-desktop">
                     <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                         <div>
-                            <div class="schedule-title-kicker">Schedule</div>
+                            <!-- <div class="schedule-title-kicker">Schedule</div> -->
                             <h1 class="schedule-title-main mb-1">
                                 My Schedule <span th:if="${isPosted}" class="schedule-posted-pill">Posted</span>
                             </h1>
+                            <!--
                             <div class="schedule-title-dates">
                                 <strong th:text="${#temporals.format(startDate, 'MM/dd')}">MM-DD-YY</strong>
                                 &nbsp;To&nbsp;
                                 <strong th:text="${#temporals.format(endDate, 'MM/dd')}">MM-DD-YY</strong>
                             </div>
+                            -->
                         </div>
 
                         <div class="d-flex align-items-center gap-2 flex-wrap">

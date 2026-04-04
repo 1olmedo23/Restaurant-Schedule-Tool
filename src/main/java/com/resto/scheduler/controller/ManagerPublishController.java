@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -25,6 +26,7 @@ public class ManagerPublishController {
     private final ScheduleViewService scheduleView;
     private final PublishService publishService;
     private final PublishedAssignmentRepository publishedAssignmentRepository;
+    private static final ZoneId APP_ZONE = ZoneId.of("America/Los_Angeles");
 
     public ManagerPublishController(SchedulePeriodRepository schedulePeriods,
                                     AssignmentRepository assignmentRepo,
@@ -59,7 +61,8 @@ public class ManagerPublishController {
             Model model
     ) {
         // 1) Anchor date: either requested start (for navigation) or today
-        LocalDate anchor = (start != null) ? start : LocalDate.now();
+        LocalDate today = LocalDate.now(APP_ZONE);
+        LocalDate anchor = (start != null) ? start : today;
 
         // 2) Try to find a POSTED period that CONTAINS the anchor date
         LocalDate baseStart;

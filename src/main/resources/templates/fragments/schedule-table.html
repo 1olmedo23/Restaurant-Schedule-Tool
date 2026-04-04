@@ -14,7 +14,7 @@
 
                 <div class="schedule-day-center">
                     <div class="text-muted small text-uppercase fw-semibold"
-                         th:text="${selectedDate.equals(#temporals.createNow().toLocalDate()) ? 'Today''s Shifts' : 'Selected day'}">
+                         th:text="${today != null and selectedDate.equals(today) ? 'Today''s Shifts' : ''}">
                         Today's Shifts
                     </div>
 
@@ -260,13 +260,13 @@
                     th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')">
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')">
 
                     <a th:href="@{/employee/schedule(start=${startDate}, view='day', day=${d})}"
                        class="schedule-day-link text-decoration-none d-inline-block w-100"
                        th:classappend="
                            (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' schedule-day-link-closed' : '') +
-                           (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-day-link-today' : '')">
+                           (${today != null and d.equals(today)} ? ' schedule-day-link-today' : '')">
 
                         <div class="d-none d-sm-block"
                              th:text="${#temporals.dayOfWeekName(d)}">
@@ -297,7 +297,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_SERVER'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -316,7 +316,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_ASSISTANT'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -335,7 +335,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_MANAGER'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -361,7 +361,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SERVER_1'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -380,7 +380,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SERVER_2'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -401,7 +401,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SERVER_3'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -421,7 +421,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SUSHI'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -445,7 +445,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_EXPO'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -464,7 +464,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_BUSSER_1'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -483,7 +483,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_BUSSER_2'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -502,7 +502,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_HOST_1'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -521,7 +521,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_HOST_2'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -540,7 +540,7 @@
                 <td th:each="d : ${weekDays}"
                     th:classappend="
                         (${#temporals.dayOfWeek(d) == 1 or #temporals.dayOfWeek(d) == 7} ? ' bg-closed' : '') +
-                        (${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : '')"
+                        (${today != null and d.equals(today)} ? ' schedule-today-column' : '')"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_FLOAT'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -567,10 +567,10 @@
                 <th class="fw-semibold"
                     th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''">
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''">
                     <a th:href="@{/employee/schedule(start=${startDate}, view='day', day=${d})}"
                        class="schedule-day-link text-decoration-none d-inline-block w-100"
-                       th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-day-link-today' : ''">
+                       th:classappend="${today != null and d.equals(today)} ? ' schedule-day-link-today' : ''">
                         <div th:text="${#strings.substring(#temporals.dayOfWeekName(d), 0, 3)}">Tue</div>
                         <div th:text="${#temporals.format(d, 'MM/dd')}">00/00</div>
                         <span class="tap-hint">(Tap)</span>
@@ -588,7 +588,7 @@
                 <th class="text-start fw-semibold">Server<div class="schedule-role-time">11:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_SERVER'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -604,7 +604,7 @@
                 <th class="text-start fw-semibold">Assistant<div class="schedule-role-time">11:30</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_ASSISTANT'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -620,7 +620,7 @@
                 <th class="text-start fw-semibold">Manager</th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'LUNCH_LUNCH_MANAGER'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -640,7 +640,7 @@
                 <th class="text-start fw-semibold">Server 1<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SERVER_1'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -656,7 +656,7 @@
                 <th class="text-start fw-semibold">Server 2<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SERVER_2'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -672,7 +672,7 @@
                 <th class="text-start fw-semibold">Sushi<div class="schedule-role-time">4:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_SUSHI'},
                              asg=${assignmentsGrid != null and assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -693,7 +693,7 @@
                 <th class="text-start fw-semibold">Expo<div class="schedule-role-time">4:15</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_EXPO'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -709,7 +709,7 @@
                 <th class="text-start fw-semibold">Busser 1<div class="schedule-role-time">5:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_BUSSER_1'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -725,7 +725,7 @@
                 <th class="text-start fw-semibold">Busser 2<div class="schedule-role-time">5:00</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_BUSSER_2'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -741,7 +741,7 @@
                 <th class="text-start fw-semibold">Host 1<div class="schedule-role-time">4:15</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_HOST_1'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -757,7 +757,7 @@
                 <th class="text-start fw-semibold">Host 2<div class="schedule-role-time">4:45</div></th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_HOST_2'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">
@@ -773,7 +773,7 @@
                 <th class="text-start fw-semibold">FLOAT</th>
                 <td th:each="d : ${weekDays}"
                     th:if="${#temporals.dayOfWeek(d) != 1 and #temporals.dayOfWeek(d) != 7}"
-                    th:classappend="${d.equals(#temporals.createNow().toLocalDate())} ? ' schedule-today-column' : ''"
+                    th:classappend="${today != null and d.equals(today)} ? ' schedule-today-column' : ''"
                     th:with="dk=${#temporals.format(d,'yyyy-MM-dd')},
                              rk=${'DINNER_FLOAT'},
                              asg=${assignmentsGrid != null && assignmentsGrid.containsKey(dk) ? assignmentsGrid.get(dk).get(rk) : null}">

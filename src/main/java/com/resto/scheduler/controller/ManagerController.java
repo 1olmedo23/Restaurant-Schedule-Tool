@@ -16,6 +16,7 @@ import com.resto.scheduler.service.RequestService;
 import com.resto.scheduler.model.enums.RequestStatus;
 import com.resto.scheduler.model.Availability;
 
+import java.time.ZoneId;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class ManagerController {
   private final SchedulePeriodRepository schedulePeriodRepo;
   private final AmendmentRepository amendmentRepo;
   private final RequestService requestService;
+  private static final ZoneId APP_ZONE = ZoneId.of("America/Los_Angeles");
 
   public ManagerController(AppUserRepository userRepo,
                            ShiftRepository shiftRepo,
@@ -72,7 +74,8 @@ public class ManagerController {
           Model model
   ) {
     // Anchor window to Monday (match Publish page behavior)
-    LocalDate anchor = mondayOf(start != null ? start : LocalDate.now());
+    LocalDate today = LocalDate.now(APP_ZONE);
+    LocalDate anchor = mondayOf(start != null ? start : today);
     LocalDate windowStart = anchor;
     LocalDate windowEnd   = anchor.plusDays(13); // 14 days total
 
@@ -123,7 +126,7 @@ public class ManagerController {
     // 🔹 This is now Map<String, List<String>>
     model.addAttribute("timeOffNamesByDate", timeOffNamesByDate);
 
-    model.addAttribute("today", LocalDate.now());
+    model.addAttribute("today", today);
     model.addAttribute("active", "manager-schedule");
 
     return "manager/schedule-builder";
@@ -395,7 +398,7 @@ public class ManagerController {
 
     AppUser user = userRepo.findById(userId).orElseThrow();
     List<Availability> rows = availabilityRepo.findByUser(user);
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now(APP_ZONE);
 
     for (Availability a : rows) {
       if (a.getStatus() == RequestStatus.PENDING) {
@@ -428,7 +431,7 @@ public class ManagerController {
 
     AppUser user = userRepo.findById(userId).orElseThrow();
     List<Availability> rows = availabilityRepo.findByUser(user);
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now(APP_ZONE);
 
     for (Availability a : rows) {
       if (a.getStatus() == RequestStatus.PENDING) {
@@ -563,7 +566,7 @@ public class ManagerController {
 
           amendment.setNewEmployee(newEmp);   // update to latest
           amendment.setChangedBy(changer);
-          amendment.setChangedAt(java.time.LocalDateTime.now());
+          amendment.setChangedAt(java.time.LocalDateTime.now(APP_ZONE));
           amendmentRepo.save(amendment);
         }
       }

@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.resto.scheduler.model.enums.RequestStatus;
 
+import java.time.ZoneId;
 import java.security.Principal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ public class EmployeeController {
   private final ScheduleViewService scheduleViewService;
   private final PublishedAssignmentRepository publishedAssignmentRepo;
   private final SchedulePeriodRepository schedulePeriodRepo;
+  private static final ZoneId APP_ZONE = ZoneId.of("America/Los_Angeles");
 
   public EmployeeController(AppUserRepository userRepo,
                             AvailabilityRepository availabilityRepo,
@@ -156,7 +158,7 @@ public class EmployeeController {
 
       // Mark as pending every time they save
       a.setStatus(RequestStatus.PENDING);
-      a.setSubmittedAt(java.time.LocalDateTime.now());
+      a.setSubmittedAt(java.time.LocalDateTime.now(APP_ZONE));
       a.setDecidedAt(null); // reset previous decision
 
       // do not touch lunchAvailable/dinnerAvailable here.
@@ -169,7 +171,7 @@ public class EmployeeController {
     return "redirect:/employee/availability?saved";
   }
 
-  // === My Schedule: navigate every 2-week block; populate only if POSTED (from published snapshot) ===
+  // === My Schedule
   @GetMapping("/schedule")
   public String mySchedule(
           @RequestParam(value = "start", required = false)
@@ -184,8 +186,10 @@ public class EmployeeController {
   ) {
     model.addAttribute("active", "employee-schedule");
 
+    LocalDate today = LocalDate.now(APP_ZONE);
+
     // Anchor date: either the requested start (for navigation) or today
-    LocalDate anchor = (start != null) ? start : LocalDate.now();
+    LocalDate anchor = (start != null) ? start : today;
 
     // 1) Try to find a POSTED period that CONTAINS the anchor date
     LocalDate periodStart;
@@ -250,7 +254,6 @@ public class EmployeeController {
 
     String viewMode = "full".equalsIgnoreCase(view) ? "full" : "day";
 
-    LocalDate today = LocalDate.now();
     LocalDate defaultSelectedDate =
             (!today.isBefore(periodStart) && !today.isAfter(endInclusive))
                     ? today
@@ -289,6 +292,7 @@ public class EmployeeController {
     model.addAttribute("nextSelectedDate", nextSelectedDate);
 
     model.addAttribute("highlightCurrentUser", true);
+    model.addAttribute("today", today);
 
     return "employee/schedule";
   }

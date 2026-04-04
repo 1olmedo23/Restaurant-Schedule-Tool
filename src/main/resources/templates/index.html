@@ -3,21 +3,46 @@
     <section class="landing-section">
         <div class="p-5 mb-4 bg-white rounded-3 shadow-sm landing-hero">
             <div class="container-fluid py-5 text-center">
+
                 <h1 class="display-5 fw-bold landing-title">
                     Welcome to <br> SKT Scheduler
                 </h1>
-                <p class="fs-5 mx-auto landing-subtitle" style="max-width: 600px;">
-                    Keeping everyone on the same page.
-                </p>
-                <a class="btn btn-primary btn-lg mt-3 landing-cta"
+
+                <!-- Business + SMS explanation -->
+                <div class="mx-auto mb-4 p-4 rounded-3 border bg-light text-start" style="max-width: 720px;">
+                    <h2 class="h5 fw-bold mb-3 text-center">About SKT Scheduler</h2>
+
+                    <p class="fs-5 mx-auto landing-subtitle mb-4" style="max-width: 600px;">
+                        SKT Scheduler is an internal employee scheduling system used by restaurant staff
+                        to manage schedules, availability, and shift updates.
+                    </p>
+
+                    <p class="mb-3 text-muted">
+                        Employees use this platform to view schedules, receive updates from managers,
+                        and manage their availability.
+                    </p>
+
+                    <p class="mb-3 text-muted">
+                        SMS notifications may be sent to employees for schedule postings, schedule
+                        updates, and shift-related alerts.
+                    </p>
+
+                    <p class="mb-0 text-muted">
+                        This system is intended for internal business use only.
+                    </p>
+
+                    <div class="text-center mt-4">
+                        <a href="/sms-policy" class="text-muted text-decoration-underline" style="font-size: 0.9rem;">
+                            SMS Policy
+                        </a>
+                    </div>
+                </div>
+
+                <a class="btn btn-primary btn-lg landing-cta"
                    th:href="@{/login}">
                     Login
                 </a>
-            </div>
-            <div class="text-center mt-4">
-                <a href="/sms-policy" class="text-muted" style="font-size: 0.9rem;">
-                    SMS Policy
-                </a>
+
             </div>
         </div>
     </section>
